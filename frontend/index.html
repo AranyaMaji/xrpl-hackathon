@@ -2,39 +2,69 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         <title>ParkO — XRPL Parking</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
         <link rel="stylesheet" href="./styles.css" />
     </head>
 
     <body>
         <div id="app">
-            
             <div id="ownerAlertsContainer" class="ownerAlertsContainer"></div>
-            
+
             <div id="map"></div>
 
             <div class="topbar">
                 <div class="card searchCard">
                     <div class="brandRow">
                         <div class="brandLeft">
-                            <div class="brand">Park<span class="brandAccent">O</span></div>
+                            <div class="brand">
+                                Park<span class="brandAccent">O</span>
+                            </div>
                         </div>
                         <div class="brandActions">
-                            <button class="btnRole" id="roleBadge" style="display: none">
+                            <button
+                                class="btnRole"
+                                id="roleBadge"
+                                style="display: none"
+                            >
                                 <span id="roleBadgeIcon"></span>
                                 <span id="roleBadgeLabel"></span>
                             </button>
-                            <div class="nftBadge" id="userNftBadge" style="display: none">
+                            <div
+                                class="nftBadge"
+                                id="userNftBadge"
+                                style="display: none"
+                            >
                                 <span class="nftIcon">🌟</span> Verified
                             </div>
-                            <button class="btnList" id="listSpotBtn" style="display: none">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <button
+                                class="btnList"
+                                id="listSpotBtn"
+                                style="display: none"
+                            >
+                                <svg
+                                    width="13"
+                                    height="13"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                >
                                     <line x1="12" y1="5" x2="12" y2="19" />
                                     <line x1="5" y1="12" x2="19" y2="12" />
                                 </svg>
@@ -46,33 +76,65 @@
                         </div>
                     </div>
                     <div class="searchRow">
-                        <svg class="searchIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <svg
+                            class="searchIcon"
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                        >
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
-                        <input id="searchInput" type="text" placeholder="Search by address…" autocomplete="off" />
+                        <input
+                            id="searchInput"
+                            type="text"
+                            placeholder="Search by address…"
+                            autocomplete="off"
+                        />
                     </div>
                     <div class="filterBar" id="filterBar">
                         <div class="filterChips" id="filterChips">
-                            <button class="filterChip active" data-filter="all">All</button>
-                            <button class="filterChip" data-filter="AVAILABLE">Available</button>
-                            <button class="filterChip" data-filter="ACTIVE">Active</button>
-                            <button class="filterChip" data-filter="EXPIRED">Expired</button>
-                            <button class="filterChip" data-filter="CONFLICT">Conflict</button>
+                            <button class="filterChip active" data-filter="all">
+                                All
+                            </button>
+                            <button class="filterChip" data-filter="AVAILABLE">
+                                Available
+                            </button>
+                            <button class="filterChip" data-filter="ACTIVE">
+                                Active
+                            </button>
+                            <button class="filterChip" data-filter="EXPIRED">
+                                Expired
+                            </button>
+                            <button class="filterChip" data-filter="CONFLICT">
+                                Conflict
+                            </button>
                         </div>
                     </div>
                     <div id="hintText" class="hint">Connecting to server…</div>
                 </div>
             </div>
 
-            <div class="activeBookingCard" id="activeBookingCard" style="display: none">
+            <div
+                class="activeBookingCard"
+                id="activeBookingCard"
+                style="display: none"
+            >
                 <div class="activeInner">
                     <div class="activeTop">
                         <div class="activeLeft">
                             <div class="activeDot" id="activeDot"></div>
                             <div>
-                                <div class="activeSpotName" id="activeSpotName">…</div>
-                                <div class="muted tiny" id="activeSubText">Booking active</div>
+                                <div class="activeSpotName" id="activeSpotName">
+                                    …
+                                </div>
+                                <div class="muted tiny" id="activeSubText">
+                                    Booking active
+                                </div>
                             </div>
                         </div>
                         <div class="activeTimer" id="activeTimer">--:--:--</div>
@@ -102,11 +164,23 @@
 
                     <div class="trickleRow" id="trickleRow">
                         <div class="trickleBar">
-                            <div class="trickleFill" id="trickleFill" style="width: 0%"></div>
+                            <div
+                                class="trickleFill"
+                                id="trickleFill"
+                                style="width: 0%"
+                            ></div>
                         </div>
                         <div class="trickleLabels">
-                            <div class="trickleLabel muted tiny" id="trickleLabel">0.000 / 0.00 XRP released</div>
-                            <div class="trickleRate muted tiny" id="trickleRate"></div>
+                            <div
+                                class="trickleLabel muted tiny"
+                                id="trickleLabel"
+                            >
+                                0.000 / 0.00 XRP released
+                            </div>
+                            <div
+                                class="trickleRate muted tiny"
+                                id="trickleRate"
+                            ></div>
                         </div>
                     </div>
 
@@ -119,8 +193,18 @@
                     <div id="activeConflictSection" style="display: none">
                         <div class="divider"></div>
                         <div class="conflictBanner">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                            >
+                                <path
+                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                                />
                                 <line x1="12" y1="9" x2="12" y2="13" />
                                 <line x1="12" y1="17" x2="12.01" y2="17" />
                             </svg>
@@ -130,11 +214,16 @@
 
                     <div id="activeResolutionSection" style="display: none">
                         <div class="divider"></div>
-                        <div class="resolutionBanner" id="activeResolutionBanner"></div>
+                        <div
+                            class="resolutionBanner"
+                            id="activeResolutionBanner"
+                        ></div>
                     </div>
 
                     <div class="activeActions" id="activeActions">
-                        <button class="btnDanger" id="endBookingBtn">I have left (End Session)</button>
+                        <button class="btnDanger" id="endBookingBtn">
+                            I have left (End Session)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -146,27 +235,63 @@
                     <div class="spotPhoto" id="spotPhoto">
                         <span class="spotPhotoIcon" id="spotPhotoIcon">🅿️</span>
                         <div class="spotPhotoBadges">
-                            <div class="spotPhotoBadge" id="spotPhotoBadge"></div>
+                            <div
+                                class="spotPhotoBadge"
+                                id="spotPhotoBadge"
+                            ></div>
                         </div>
                     </div>
 
                     <div class="sheetHeader">
                         <div style="flex: 1; min-width: 0">
                             <div class="sheetTitleRow">
-                                <div class="sheetTitle" id="sheetTitle">Select a spot</div>
+                                <div class="sheetTitle" id="sheetTitle">
+                                    Select a spot
+                                </div>
                             </div>
-                            <div class="muted tiny" id="sheetSubtitle" style="margin-top: 2px">Tap a pin to view details</div>
-                            <div class="sheetMeta" id="sheetMeta" style="display: none">
+                            <div
+                                class="muted tiny"
+                                id="sheetSubtitle"
+                                style="margin-top: 2px"
+                            >
+                                Tap a pin to view details
+                            </div>
+                            <div
+                                class="sheetMeta"
+                                id="sheetMeta"
+                                style="display: none"
+                            >
                                 <div class="statusBadge" id="statusBadge"></div>
                             </div>
                         </div>
                         <div class="sheetActions">
-                            <button class="iconBtn" id="directionsBtn" aria-label="Directions" title="Get directions">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                            <button
+                                class="iconBtn"
+                                id="directionsBtn"
+                                aria-label="Directions"
+                                title="Get directions"
+                            >
+                                <svg
+                                    width="15"
+                                    height="15"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                >
+                                    <polygon
+                                        points="3 11 22 2 13 21 11 13 3 11"
+                                    />
                                 </svg>
                             </button>
-                            <button class="iconBtn" id="closeSheetBtn" aria-label="Close">✕</button>
+                            <button
+                                class="iconBtn"
+                                id="closeSheetBtn"
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
                         </div>
                     </div>
 
@@ -193,7 +318,15 @@
 
                     <div class="divider"></div>
 
-                    <div id="dynamicSheetActions" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;"></div>
+                    <div
+                        id="dynamicSheetActions"
+                        style="
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                            margin-top: 10px;
+                        "
+                    ></div>
 
                     <div style="height: 14px"></div>
                 </div>
@@ -207,7 +340,13 @@
                                 <div class="modalTitle">Book this spot</div>
                                 <div class="muted tiny" id="modalSpotSub"></div>
                             </div>
-                            <button class="iconBtn" id="modalCloseBtn" aria-label="Close">✕</button>
+                            <button
+                                class="iconBtn"
+                                id="modalCloseBtn"
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
                         </div>
                         <div id="modalSpotName" class="modalSpotName"></div>
 
@@ -215,10 +354,17 @@
 
                         <div class="durationSection">
                             <div class="hoursLabel">Duration</div>
-                            <div class="quickDurations" id="quickDurations"></div>
+                            <div
+                                class="quickDurations"
+                                id="quickDurations"
+                            ></div>
                             <div class="hoursStepper">
-                                <button class="stepBtn" id="hoursDown" disabled>−</button>
-                                <div class="hoursDisplay" id="hoursDisplay">1 hr</div>
+                                <button class="stepBtn" id="hoursDown" disabled>
+                                    −
+                                </button>
+                                <div class="hoursDisplay" id="hoursDisplay">
+                                    1 hr
+                                </div>
                                 <button class="stepBtn" id="hoursUp">+</button>
                             </div>
                         </div>
@@ -231,7 +377,12 @@
                                 <span id="costParking">—</span>
                             </div>
                             <div class="costRow">
-                                <span class="muted">Collateral <span class="tiny">(3× rate, refundable)</span></span>
+                                <span class="muted"
+                                    >Collateral
+                                    <span class="tiny"
+                                        >(3× rate, refundable)</span
+                                    ></span
+                                >
                                 <span id="costDeposit">—</span>
                             </div>
                             <div class="costRow total">
@@ -240,19 +391,119 @@
                             </div>
                         </div>
 
+                        <div class="divider"></div>
+
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                margin: 12px 0;
+                                background: rgba(106, 228, 255, 0.05);
+                                padding: 12px;
+                                border-radius: 12px;
+                                border: 1px solid var(--border);
+                            "
+                        >
+                            <div>
+                                <div
+                                    style="font-weight: 800; color: var(--text)"
+                                >
+                                    Pay with RLUSD Stablecoin
+                                </div>
+                                <div class="muted tiny">
+                                    Auto-swaps to XRP via native AMM DEX
+                                </div>
+                            </div>
+                            <label
+                                style="
+                                    position: relative;
+                                    display: inline-block;
+                                    width: 44px;
+                                    height: 24px;
+                                "
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="stablecoinToggle"
+                                    style="opacity: 0; width: 0; height: 0"
+                                />
+                                <span
+                                    style="
+                                        position: absolute;
+                                        cursor: pointer;
+                                        top: 0;
+                                        left: 0;
+                                        right: 0;
+                                        bottom: 0;
+                                        background-color: rgba(
+                                            255,
+                                            255,
+                                            255,
+                                            0.1
+                                        );
+                                        border-radius: 24px;
+                                        transition: 0.4s;
+                                    "
+                                >
+                                    <span
+                                        id="toggleKnob"
+                                        style="
+                                            position: absolute;
+                                            content: '';
+                                            height: 18px;
+                                            width: 18px;
+                                            left: 3px;
+                                            bottom: 3px;
+                                            background-color: var(--accent);
+                                            border-radius: 50%;
+                                            transition: 0.2s;
+                                        "
+                                    ></span>
+                                </span>
+                            </label>
+                        </div>
+
                         <div style="height: 12px"></div>
 
-                        <div class="callout tiny muted" style="padding: 10px 12px; line-height: 1.5">
-                            Funds stream to the owner every 10 seconds. Collateral returned in full on safe checkout. Disputed? 2/3 consensus (Parker + Owner + Admin) decides the outcome.
+                        <div
+                            class="callout tiny muted"
+                            style="padding: 10px 12px; line-height: 1.5"
+                        >
+                            Funds stream to the owner every 10 seconds.
+                            Collateral returned in full on safe checkout.
+                            Disputed? 2/3 consensus (Parker + Owner + Admin)
+                            decides the outcome.
                         </div>
 
                         <div style="height: 14px"></div>
 
                         <div class="modalActions">
-                            <button class="btn" id="modalCancelBtn">Cancel</button>
-                            <button class="btnPrimary" id="modalConfirmBtn" style="flex: 1">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <button class="btn" id="modalCancelBtn">
+                                Cancel
+                            </button>
+                            <button
+                                class="btnPrimary"
+                                id="modalConfirmBtn"
+                                style="flex: 1"
+                            >
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                >
+                                    <rect
+                                        x="3"
+                                        y="11"
+                                        width="18"
+                                        height="11"
+                                        rx="2"
+                                        ry="2"
+                                    />
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                 </svg>
                                 Send Booking Request
@@ -262,12 +513,23 @@
 
                     <div id="successView" style="display: none">
                         <div class="successCheck">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round">
+                            <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="var(--green)"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                            >
                                 <polyline points="20 6 9 17 4 12" />
                             </svg>
                         </div>
                         <div class="successTitle">Spot Booked!</div>
-                        <div class="successSub muted tiny">Your escrow is locked on-chain. Head to the spot now.</div>
+                        <div class="successSub muted tiny">
+                            Your escrow is locked on-chain. Head to the spot
+                            now.
+                        </div>
 
                         <div class="xrplBlock">
                             <div class="xrplBlockHeader">
@@ -277,8 +539,19 @@
                             <div class="xrplRows" id="successDetails"></div>
                         </div>
 
-                        <button class="btnPrimary btnGreen successStartBtn" id="successStartBtn">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <button
+                            class="btnPrimary btnGreen successStartBtn"
+                            id="successStartBtn"
+                        >
+                            <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                            >
                                 <polygon points="5 3 19 12 5 21 5 3" />
                             </svg>
                             I Have Arrived — Start Parking
@@ -287,8 +560,16 @@
 
                     <div id="loadingView" style="display: none">
                         <div class="loadingSpinner"></div>
-                        <div class="loadingTitle" id="loadingTitle">Processing on XRPL…</div>
-                        <div class="muted tiny" style="text-align: center; margin-top: 4px" id="loadingSub">Creating payment channel & escrow</div>
+                        <div class="loadingTitle" id="loadingTitle">
+                            Processing on XRPL…
+                        </div>
+                        <div
+                            class="muted tiny"
+                            style="text-align: center; margin-top: 4px"
+                            id="loadingSub"
+                        >
+                            Creating payment channel & escrow
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,9 +579,17 @@
                     <div class="modalHeader">
                         <div>
                             <div class="modalTitle">List your parking spot</div>
-                            <div class="muted tiny">Earn XRP as parkers use your spot</div>
+                            <div class="muted tiny">
+                                Earn XRP as parkers use your spot
+                            </div>
                         </div>
-                        <button class="iconBtn" id="listModalCloseBtn" aria-label="Close">✕</button>
+                        <button
+                            class="iconBtn"
+                            id="listModalCloseBtn"
+                            aria-label="Close"
+                        >
+                            ✕
+                        </button>
                     </div>
 
                     <div class="divider" style="margin: 10px 0"></div>
@@ -308,18 +597,34 @@
                     <div class="formScroll">
                         <div class="formGroup">
                             <label for="ownerTitle">Spot title</label>
-                            <input type="text" id="ownerTitle" placeholder="e.g. Secure UNSW Driveway" maxlength="60" />
+                            <input
+                                type="text"
+                                id="ownerTitle"
+                                placeholder="e.g. Secure UNSW Driveway"
+                                maxlength="60"
+                            />
                         </div>
 
                         <div class="formGroup">
                             <label for="ownerAddress">Address</label>
-                            <input type="text" id="ownerAddress" placeholder="e.g. 15 High St, Kensington" />
+                            <input
+                                type="text"
+                                id="ownerAddress"
+                                placeholder="e.g. 15 High St, Kensington"
+                            />
                         </div>
 
                         <div class="formRow">
                             <div class="formGroup">
                                 <label for="ownerRate">Rate (XRP / hr)</label>
-                                <input type="number" id="ownerRate" min="0.1" max="99" step="0.1" value="2.0" />
+                                <input
+                                    type="number"
+                                    id="ownerRate"
+                                    min="0.1"
+                                    max="99"
+                                    step="0.1"
+                                    value="2.0"
+                                />
                             </div>
                             <div class="formGroup">
                                 <label for="ownerAccess">Access type</label>
@@ -335,7 +640,9 @@
 
                         <div class="formRow">
                             <div class="formGroup">
-                                <label for="ownerOverstay">Overstay penalty</label>
+                                <label for="ownerOverstay"
+                                    >Overstay penalty</label
+                                >
                                 <select id="ownerOverstay">
                                     <option value="2">2× rate</option>
                                     <option value="3" selected>3× rate</option>
@@ -345,7 +652,9 @@
                                 <label for="ownerDeposit">Deposit held</label>
                                 <select id="ownerDeposit">
                                     <option value="2">2× hourly rate</option>
-                                    <option value="3" selected>3× hourly rate</option>
+                                    <option value="3" selected>
+                                        3× hourly rate
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -362,20 +671,41 @@
                         </div>
 
                         <div class="formGroup">
-                            <label for="ownerRules">Rules <span class="muted tiny" style="text-transform: none">(optional)</span></label>
-                            <textarea id="ownerRules" rows="3" placeholder="e.g. Leave by end time to avoid penalties."></textarea>
+                            <label for="ownerRules"
+                                >Rules
+                                <span
+                                    class="muted tiny"
+                                    style="text-transform: none"
+                                    >(optional)</span
+                                ></label
+                            >
+                            <textarea
+                                id="ownerRules"
+                                rows="3"
+                                placeholder="e.g. Leave by end time to avoid penalties."
+                            ></textarea>
                         </div>
 
                         <div class="earningsPreview" style="margin-top: 5px">
                             <div class="earningsLabel">Estimated Potential</div>
-                            <div class="earningsValue" id="earningsValue">0.00 XRP</div>
+                            <div class="earningsValue" id="earningsValue">
+                                0.00 XRP
+                            </div>
                         </div>
                     </div>
 
                     <div style="height: 14px; flex-shrink: 0"></div>
                     <div class="modalActions" style="flex-shrink: 0">
-                        <button class="btn" id="listModalCancelBtn">Cancel</button>
-                        <button class="btnPrimary btnGreen" id="listModalSubmitBtn" style="flex: 1">List Spot (Demo)</button>
+                        <button class="btn" id="listModalCancelBtn">
+                            Cancel
+                        </button>
+                        <button
+                            class="btnPrimary btnGreen"
+                            id="listModalSubmitBtn"
+                            style="flex: 1"
+                        >
+                            List Spot (Demo)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -383,11 +713,20 @@
             <div class="roleOverlay" id="roleOverlay">
                 <div class="roleCard">
                     <div class="roleIcon">🅿️</div>
-                    <div class="roleTitle">Welcome to Park<span class="brandAccent">O</span></div>
-                    <div class="roleSub muted">Peer-to-peer parking powered by XRPL escrow</div>
+                    <div class="roleTitle">
+                        Welcome to Park<span class="brandAccent">O</span>
+                    </div>
+                    <div class="roleSub muted">
+                        Peer-to-peer parking powered by XRPL escrow
+                    </div>
 
-                    <div class="roleDesc muted tiny" style="margin-bottom: 16px; line-height: 1.5">
-                        3-role consensus: Parker, Owner, and Admin vote on session outcomes. 2/3 agreement settles the escrow on-chain.
+                    <div
+                        class="roleDesc muted tiny"
+                        style="margin-bottom: 16px; line-height: 1.5"
+                    >
+                        3-role consensus: Parker, Owner, and Admin vote on
+                        session outcomes. 2/3 agreement settles the escrow
+                        on-chain.
                     </div>
 
                     <div class="roleButtons" id="roleButtons">
@@ -395,37 +734,61 @@
                             <span class="roleBtnIcon">🚗</span>
                             <div>
                                 <div class="roleBtnTitle">Parker</div>
-                                <div class="muted tiny">Find, book & park in listed spots</div>
+                                <div class="muted tiny">
+                                    Find, book & park in listed spots
+                                </div>
                             </div>
                         </button>
                         <button class="roleBtn" data-role="owner">
                             <span class="roleBtnIcon">🏠</span>
                             <div>
                                 <div class="roleBtnTitle">Owner</div>
-                                <div class="muted tiny">Monitor your spots & earn XRP</div>
+                                <div class="muted tiny">
+                                    Monitor your spots & earn XRP
+                                </div>
                             </div>
                         </button>
                         <button class="roleBtn" data-role="admin">
                             <span class="roleBtnIcon">🛡️</span>
                             <div>
                                 <div class="roleBtnTitle">Admin</div>
-                                <div class="muted tiny">Resolve disputes as tie-breaker</div>
+                                <div class="muted tiny">
+                                    Resolve disputes as tie-breaker
+                                </div>
                             </div>
                         </button>
                     </div>
 
-                    <div class="adminPassGroup" id="adminPassGroup" style="display: none">
+                    <div
+                        class="adminPassGroup"
+                        id="adminPassGroup"
+                        style="display: none"
+                    >
                         <div style="height: 12px"></div>
                         <div class="formGroup">
                             <label for="adminPassInput">Admin password</label>
-                            <input type="password" id="adminPassInput" placeholder="Enter admin password" />
+                            <input
+                                type="password"
+                                id="adminPassInput"
+                                placeholder="Enter admin password"
+                            />
                         </div>
                         <div style="height: 8px"></div>
-                        <button class="btnPrimary" id="adminPassSubmit">Verify & Enter</button>
-                        <div class="formError" id="adminPassError" style="display: none">Incorrect password</div>
+                        <button class="btnPrimary" id="adminPassSubmit">
+                            Verify & Enter
+                        </button>
+                        <div
+                            class="formError"
+                            id="adminPassError"
+                            style="display: none"
+                        >
+                            Incorrect password
+                        </div>
                     </div>
 
-                    <div class="roleFooter muted tiny">Built for XRPL Hackathon 2025</div>
+                    <div class="roleFooter muted tiny">
+                        Built for XRPL Hackathon 2025
+                    </div>
                 </div>
             </div>
         </div>

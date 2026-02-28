@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────
 // ParkFlow — app.js v5 (With Approval Gateway)
 // ─────────────────────────────────────────────────
-const POLL_MS = 3000;
+const POLL_MS = 1500;
 
 // ─── DOM Refs ────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -92,6 +92,7 @@ let sysReady = false;
 let currentFilter = 'all';
 let pollTimer = null;
 let voting = false; // prevents double-voting
+let isStartingParking = false; // NEW: Prevents button re-rendering during polls
 
 // Allow inline HTML functions to call handleVote
 window.handleVote = handleVote;
@@ -314,15 +315,15 @@ function updateSystemPill() {
 
 // ─── Owner Alerts UI ─────────────────────────────
 function renderOwnerAlerts(pendingSpots) {
-    const container = $("ownerAlertsContainer");
+    const container = $('ownerAlertsContainer');
     if (!container) return;
     if (pendingSpots.length === 0) {
-        container.innerHTML = "";
+        container.innerHTML = '';
         return;
     }
 
-    let html = "";
-    pendingSpots.forEach(spot => {
+    let html = '';
+    pendingSpots.forEach((spot) => {
         let scoreColor = '#ff6b6b';
         if (spot.pendingParkerScore >= 750) scoreColor = '#4dffb4';
         else if (spot.pendingParkerScore >= 650) scoreColor = '#6ae4ff';
@@ -350,11 +351,14 @@ function renderOwnerAlerts(pendingSpots) {
 
 window.apiApprove = async (spotId, action) => {
     try {
-        await api("POST", "/approve", { spotId, action });
-        showToast(action === 'accept' ? 'Booking Accepted!' : 'Booking Declined', action === 'accept' ? 'green' : 'warn');
-        await poll(); 
+        await api('POST', '/approve', { spotId, action });
+        showToast(
+            action === 'accept' ? 'Booking Accepted!' : 'Booking Declined',
+            action === 'accept' ? 'green' : 'warn',
+        );
+        await poll();
     } catch (e) {
-        showToast("Action failed: " + e.message, "danger");
+        showToast('Action failed: ' + e.message, 'danger');
     }
 };
 
@@ -370,11 +374,13 @@ async function poll() {
 
         // Render Owner Approval Toasts
         if (role === 'owner') {
-            const pendingSpots = spotsRes.filter(s => s.status === 'PENDING_APPROVAL');
+            const pendingSpots = spotsRes.filter(
+                (s) => s.status === 'PENDING_APPROVAL',
+            );
             renderOwnerAlerts(pendingSpots);
         } else {
-            const alertBox = $("ownerAlertsContainer");
-            if (alertBox) alertBox.innerHTML = "";
+            const alertBox = $('ownerAlertsContainer');
+            if (alertBox) alertBox.innerHTML = '';
         }
 
         // Update Top Bar Reputation Badge (Visible to Parker)
@@ -383,12 +389,14 @@ async function poll() {
             if (role === 'parker') {
                 const score = statusRes.profiles.parker.trustScore;
                 let color = '#ff6b6b'; // Poor
-                if (score >= 750) color = '#4dffb4'; // Excellent
-                else if (score >= 650) color = '#6ae4ff'; // Good
+                if (score >= 750)
+                    color = '#4dffb4'; // Excellent
+                else if (score >= 650)
+                    color = '#6ae4ff'; // Good
                 else if (score >= 550) color = '#ffb84d'; // Fair
 
                 nftBadge.style.display = '';
-                nftBadge.innerHTML = `<span class="nftIcon">📊</span> <span style="color:${color}; font-family:var(--mono);">${score}</span> <span style="margin-left:4px; font-size:10px; font-weight:600; color:var(--muted)">TRUST SCORE</span>`;
+                nftBadge.innerHTML = `<span class="nftIcon">🌟</span> <span style="color:${color}; font-family:var(--mono);">${score}</span> <span style="margin-left:4px; font-size:10px; font-weight:600; color:var(--muted)">TRUST SCORE</span>`;
                 nftBadge.style.borderColor = color;
                 nftBadge.style.boxShadow = `0 0 10px ${color}33`;
             } else {
@@ -431,7 +439,8 @@ function closeSheet() {
 
 function selectSpot(spot) {
     selId = spot.id;
-    if (spot.status !== 'AVAILABLE' && spot.status !== 'PENDING_APPROVAL') myId = spot.id;
+    if (spot.status !== 'AVAILABLE' && spot.status !== 'PENDING_APPROVAL')
+        myId = spot.id;
     openSheet();
     updateSheet();
     renderMarkers();
@@ -555,11 +564,19 @@ function renderDynamicActions(spot) {
             <p class="muted tiny">The owner is currently reviewing your profile and Trust Score.</p>
         </div>`;
         } else if (spot.status === 'BOOKED') {
-            html = `
-        <button class="btnPrimary btnGreen" id="injectArriveBtn">
-          📍 I Have Arrived — Lock Funds
-        </button>
-      `;
+            // NEW: Render a disabled button with a throbber if XRPL is processing
+            if (isStartingParking) {
+                html = `
+                <button class="btnPrimary btnGreen" disabled style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <div class="loadingSpinner" style="width: 14px; height: 14px; border-width: 2px; margin: 0; animation: spin 0.8s linear infinite;"></div>
+                    Locking on Ledger...
+                </button>`;
+            } else {
+                html = `
+                <button class="btnPrimary btnGreen" id="injectArriveBtn">
+                  📍 I Have Arrived — Lock Funds
+                </button>`;
+            }
         } else if (spot.status === 'ACTIVE') {
             html = `<div class="callout muted tiny" style="text-align:center;">Session is Active. Tap your active booking card floating below to end the session.</div> ${txLinks}`;
         } else if (spot.status === 'EXPIRED' || spot.status === 'CONFLICT') {
@@ -682,7 +699,9 @@ function renderDynamicActions(spot) {
 // ─── Voting ──────────────────────────────────────
 async function handleVote(vote) {
     const spotId = selId || myId;
-    console.log(`[UI EVENT] Casting Vote: Role=${role} Vote=${vote} Spot=${spotId}`);
+    console.log(
+        `[UI EVENT] Casting Vote: Role=${role} Vote=${vote} Spot=${spotId}`,
+    );
     if (!spotId || !role || voting) return;
     voting = true;
 
@@ -713,7 +732,11 @@ function updateActiveCard() {
     }
 
     const spot = spots.find((s) => s.id === myId);
-    if (!spot || spot.status === 'AVAILABLE' || spot.status === 'PENDING_APPROVAL') {
+    if (
+        !spot ||
+        spot.status === 'AVAILABLE' ||
+        spot.status === 'PENDING_APPROVAL'
+    ) {
         myId = null;
         activeBookingCard.style.display = 'none';
         return;
@@ -747,7 +770,8 @@ function updateActiveCard() {
 
         case 'ACTIVE': {
             const elapsedMins = spot.minutesElapsed || 0;
-            const pct = spot.duration > 0 ? elapsedMins / 60 / spot.duration : 0;
+            const pct =
+                spot.duration > 0 ? elapsedMins / 60 / spot.duration : 0;
             const released = spot.price * (elapsedMins / 60);
             const total = spot.price * spot.duration;
 
@@ -948,7 +972,9 @@ function updateBookingCost() {
 async function confirmBooking() {
     const spot = spots.find((s) => s.id === selId);
     if (!spot) return;
-    console.log(`[UI EVENT] Requesting Off-Chain Booking for ${spot.id} for ${bookHrs} hrs`);
+    console.log(
+        `[UI EVENT] Requesting Off-Chain Booking for ${spot.id} for ${bookHrs} hrs`,
+    );
 
     modalConfirmBtn.disabled = true;
     modalConfirmBtn.textContent = 'Sending Request...';
@@ -962,7 +988,9 @@ async function confirmBooking() {
         if (result.success) {
             myId = spot.id;
             closeModal();
-            showToast("Request sent! Waiting for owner to review your Trust Score.");
+            showToast(
+                'Request sent! Waiting for owner to review your Trust Score.',
+            );
             await poll(); // Instantly show PENDING_APPROVAL in the sheet UI
         }
     } catch (e) {
@@ -980,24 +1008,36 @@ async function startParking(fromModal) {
     if (!myId) return;
     console.log(`[UI EVENT] Triggering On-Chain Logic for ${myId}`);
 
+    // Lock the UI against background polling
+    isStartingParking = true;
+    if (selId === myId) updateSheet(); // Instantly inject the throbber
+
+    const toggle = document.getElementById('stablecoinToggle');
+    const useStablecoin = toggle ? toggle.checked : false;
+
     if (fromModal) {
         modalView.style.display = 'none';
         successView.style.display = 'none';
         loadingView.style.display = '';
         loadingTitle.textContent = 'Processing on XRPL\u2026';
-        loadingSub.textContent = 'Creating payment channel & locking escrow on-chain';
-    }
-
-    const btn = $('injectArriveBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Locking XRP on Ledger (~5s)...';
+        loadingSub.textContent = useStablecoin
+            ? 'Swapping RLUSD via AMM & locking escrow...'
+            : 'Creating payment channel & locking escrow on-chain';
     }
 
     try {
-        const result = await api('POST', '/start', { spotId: myId });
+        const result = await api('POST', '/start', {
+            spotId: myId,
+            useStablecoin,
+        });
+
         if (result.success) {
-            showToast('Funds Locked! XRP streaming actively.');
+            if (result.hashes.swapHash) {
+                showToast('RLUSD Swapped & Funds Locked! Streaming actively.');
+            } else {
+                showToast('Funds Locked! XRP streaming actively.');
+            }
+            isStartingParking = false; // Release the lock
             closeModal();
             closeSheet();
             await poll();
@@ -1005,14 +1045,13 @@ async function startParking(fromModal) {
             throw new Error(result.error || 'Failed to start');
         }
     } catch (e) {
+        isStartingParking = false; // Release the lock on failure
+        if (selId === myId) updateSheet(); // Restore the normal button
+
         showToast('Start failed: ' + e.message, 'danger');
         if (fromModal) {
             loadingView.style.display = 'none';
             successView.style.display = '';
-        }
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `📍 I Have Arrived — Lock Funds`;
         }
     }
 }
@@ -1168,15 +1207,18 @@ function setupEvents() {
     listModal.addEventListener('click', (e) => {
         if (e.target === listModal) closeListModal();
     });
-    if (ownerRateInput) ownerRateInput.addEventListener("input", updateEarningsPreview);
-    if (ownerStartInput) ownerStartInput.addEventListener("input", updateEarningsPreview);
-    if (ownerEndInput) ownerEndInput.addEventListener("input", updateEarningsPreview);
+    if (ownerRateInput)
+        ownerRateInput.addEventListener('input', updateEarningsPreview);
+    if (ownerStartInput)
+        ownerStartInput.addEventListener('input', updateEarningsPreview);
+    if (ownerEndInput)
+        ownerEndInput.addEventListener('input', updateEarningsPreview);
 
-    const listModalSubmitBtn = $("listModalSubmitBtn");
+    const listModalSubmitBtn = $('listModalSubmitBtn');
     if (listModalSubmitBtn) {
-        listModalSubmitBtn.addEventListener("click", () => {
+        listModalSubmitBtn.addEventListener('click', () => {
             closeListModal();
-            showToast("Spot listed successfully! (Demo mode)");
+            showToast('Spot listed successfully! (Demo mode)');
         });
     }
 
@@ -1202,6 +1244,20 @@ function setupEvents() {
         renderMarkers();
         if (sheet.classList.contains('open')) closeSheet();
     });
+
+    // Stablecoin Toggle Animation
+    const sToggle = $('stablecoinToggle');
+    const sKnob = $('toggleKnob');
+    if (sToggle && sKnob) {
+        sToggle.addEventListener('change', (e) => {
+            sKnob.style.transform = e.target.checked
+                ? 'translateX(20px)'
+                : 'translateX(0)';
+            sKnob.style.backgroundColor = e.target.checked
+                ? 'var(--green)'
+                : 'var(--accent)';
+        });
+    }
 }
 
 function init() {

@@ -7,7 +7,6 @@ const state = {
     parkerWallet: null,
     ownerWallet: null,
     adminWallet: null,
-    isReady: false,
 };
 
 exports.initLedger = async () => {
@@ -207,4 +206,147 @@ exports.slashCollateral = async (spot) => {
         `[XRPL: RESPONSE] EscrowFinish Result: ${finishTx.result.meta.TransactionResult}\n`,
     );
     return finishTx.result.hash;
+};
+
+let issuerWallet = null;
+const RLUSD_CURRENCY = 'RLU'; // Mock RLUSD
+
+exports.setupStablecoinAndAMM = async () => {
+    console.log('\n[XRPL: AMM] Setting up Stablecoin & AMM Pool...');
+
+    // 1. Fund Issuer Wallet
+    const { wallet: issuer } = await state.client.fundWallet();
+    issuerWallet = issuer;
+    console.log(`[XRPL: AMM] Issuer created: ${issuerWallet.address}`);
+
+    // 2. Set Default Ripple on Issuer
+    console.log(`[XRPL: AMM] Setting asfDefaultRipple on Issuer...`);
+    const accSetTx = await state.client.submitAndWait(
+        {
+            TransactionType: 'AccountSet',
+            Account: issuerWallet.address,
+            SetFlag: xrpl.AccountSetAsfFlags.asfDefaultRipple,
+        },
+        { wallet: issuerWallet },
+    );
+    console.log(
+        `[XRPL: AMM] AccountSet Result: ${accSetTx.result.meta.TransactionResult}`,
+    );
+
+    // 3. Parker creates Trustline to Issuer
+    console.log(`[XRPL: AMM] Creating Trustline for Parker -> Issuer...`);
+    const trustTx = await state.client.submitAndWait(
+        {
+            TransactionType: 'TrustSet',
+            Account: state.parkerWallet.address,
+            LimitAmount: {
+                currency: RLUSD_CURRENCY,
+                issuer: issuerWallet.address,
+                value: '10000',
+            },
+        },
+        { wallet: state.parkerWallet },
+    );
+    console.log(
+        `[XRPL: AMM] TrustSet Result: ${trustTx.result.meta.TransactionResult}`,
+    );
+
+    // 4. Issue 500 RLUSD to Parker
+    console.log(`[XRPL: AMM] Minting 500 RLUSD to Parker...`);
+    const mintTx = await state.client.submitAndWait(
+        {
+            TransactionType: 'Payment',
+            Account: issuerWallet.address,
+            Destination: state.parkerWallet.address,
+            Amount: {
+                currency: RLUSD_CURRENCY,
+                issuer: issuerWallet.address,
+                value: '500',
+            },
+        },
+        { wallet: issuerWallet },
+    );
+    console.log(
+        `[XRPL: AMM] Mint Result: ${mintTx.result.meta.TransactionResult}`,
+    );
+
+    // 5. Create AMM Pool (XRP / RLUSD)
+    // THE FIX: Use 50 XRP instead of 200, as testnet wallets only have 100 XRP total!
+    console.log(
+        `[XRPL: AMM] Funding AMM Liquidity Pool (50 XRP / 50 RLUSD)...`,
+    );
+    const ammTx = await state.client.submitAndWait(
+        {
+            TransactionType: 'AMMCreate',
+            Account: issuerWallet.address,
+            Amount: '50000000', // 50 XRP
+            Amount2: {
+                currency: RLUSD_CURRENCY,
+                issuer: issuerWallet.address,
+                value: '50', // 50 RLUSD
+            },
+            TradingFee: 500,
+        },
+        { wallet: issuerWallet },
+    );
+
+    console.log(
+        `[XRPL: AMM] AMMCreate Result: ${ammTx.result.meta.TransactionResult}`,
+    );
+    if (ammTx.result.meta.TransactionResult !== 'tesSUCCESS') {
+        console.error(
+            '[XRPL: AMM FATAL] Failed to create AMM Pool:',
+            JSON.stringify(ammTx.result, null, 2),
+        );
+    } else {
+        console.log(`[XRPL: AMM] AMM Pool Active! Pathfinding ready.\n`);
+        state.isReady = true;
+    }
+};
+
+exports.swapStablecoinForXRP = async (dropsNeeded) => {
+    console.log(
+        `\n[XRPL: DEX] Initiating AMM Auto-Swap for ${dropsNeeded} drops...`,
+    );
+
+    // Round to 4 decimal places to prevent XRPL precision overflow
+    const estimatedUsd = ((Number(dropsNeeded) / 1000000) * 1.05).toFixed(4);
+
+    const swapPayload = {
+        TransactionType: 'Payment',
+        Account: state.parkerWallet.address,
+        Destination: state.parkerWallet.address,
+        Amount: dropsNeeded.toString(),
+        SendMax: {
+            currency: RLUSD_CURRENCY,
+            issuer: issuerWallet.address,
+            value: estimatedUsd.toString(),
+        },
+        Flags: xrpl.PaymentFlags.tfPartialPayment,
+    };
+
+    console.log(
+        `[XRPL: DEX] Transmitting Swap Payload:`,
+        JSON.stringify(swapPayload, null, 2),
+    );
+
+    const swapTx = await state.client.submitAndWait(swapPayload, {
+        wallet: state.parkerWallet,
+    });
+    console.log(
+        `[XRPL: DEX] Swap TX Result: ${swapTx.result.meta.TransactionResult}`,
+    );
+
+    if (swapTx.result.meta.TransactionResult !== 'tesSUCCESS') {
+        console.error(
+            `[XRPL: DEX FATAL] Complete Ledger Rejection:`,
+            JSON.stringify(swapTx.result, null, 2),
+        );
+        throw new Error(
+            `AMM Swap Failed: ${swapTx.result.meta.TransactionResult}`,
+        );
+    }
+
+    console.log(`[XRPL: DEX] Swap Successful! Acquired XRP via AMM.`);
+    return swapTx.result.hash;
 };
