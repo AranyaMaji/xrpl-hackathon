@@ -2,13 +2,13 @@
 
 **A Decentralized Peer-to-Peer Parking Marketplace Powered by the XRP Ledger.**
 
-Built for the XRPL Hackathon 2025. ParkO eliminates predatory parking fees by directly connecting driveway owners with drivers using trustless, time-released on-chain escrows. 
+Built for the XRPL Hackathon 6. XRPark eliminates predatory parking fees by directly connecting driveway owners with drivers using trustless, time-released on-chain escrows. 
 
 ## 🚀 The Hackathon Edge (Core Features)
 
-Instead of just building a standard Web2 CRUD app that happens to use crypto, ParkO deeply integrates native XRPL primitives:
+Instead of just building a standard Web2 CRUD app that happens to use crypto, XRPark deeply integrates native XRPL primitives:
 
-* **Streaming On-Chain Payments (Payment Channels):** XRP doesn't just move at the end of a session. It streams. ParkO utilizes XRPL Payment Channels to trickle fractional payments to the Owner every 5 minutes.
+* **Streaming On-Chain Payments (Payment Channels):** XRP doesn't just move at the end of a session. It streams. XRPark utilizes XRPL Payment Channels to trickle fractional payments to the Owner every 5 minutes.
 * **Stablecoin AMM Auto-Swap:** Parkers can pay in **RLUSD** (Stablecoin) while Owners strictly receive **XRP**. The backend executes a `SendMax` atomic swap utilizing the XRPL's native Automated Market Maker (AMM) DEX before locking the escrow.
 * **XLS-20 Soulbound Reputation System:** FICO-style Trust Scores (300-850). Flawless checkouts mint a permanent "Verified Parker" NFT to your wallet. Overstaying slashes your collateral, burns the NFT, and tanks your score.
 * **Approval Gateway:** Owners review a Parker's Trust Score before programmatically accepting the booking.

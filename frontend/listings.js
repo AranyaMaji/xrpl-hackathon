@@ -32,9 +32,9 @@ export const LISTINGS = [
     rules: ["Do not block the pedestrian footpath."]
   },
   {
-    id: "unsw-003", title: "Clara St Quiet Bay", subtitle: "Randwick side · 6 min walk",
-    address: "12 Clara St, Randwick NSW",
-    lat: -33.9115, lng: 151.2335,
+    id: "unsw-003", title: "Arthur St Shaded Spot", subtitle: "Randwick side · 4 min walk",
+    address: "15 Arthur St, Randwick NSW",
+    lat: -33.9149, lng: 151.2377,
     ratePerHourXrp: 1.5, depositMultiple: 2, overstayMultiple: 2, access: "Kerbside bay",
     ownerWallet: "rGWrZyax5eXbi5gs49MRZKmm8ksc2QFAM", rating: 4.2, totalBookings: 19,
     features: ["Cheap", "Quiet street", "Shaded in afternoon"], maxVehicleHeight: null,
@@ -266,5 +266,102 @@ export const LISTINGS = [
     features: ["Cheapest rate", "Good for 8h+"], maxVehicleHeight: null,
     availability: { startISO: new Date(NOW + hr(4.5)).toISOString(), endISO: new Date(NOW + hr(12)).toISOString() },
     rules: ["Available in 4.5 hours."]
+  },
+
+  // ==========================================
+  // 🟢 AVAILABLE NOW (Additional Spots)
+  // ==========================================
+
+  // North-East (Avoca St / Alison Rd, Randwick)
+  {
+    id: "unsw-025", title: "Avoca St Garden Spot", subtitle: "Randwick north-east · 5 min walk",
+    address: "27 Avoca St, Randwick NSW",
+    lat: -33.9135, lng: 151.2405,
+    ratePerHourXrp: 2.2, depositMultiple: 3, overstayMultiple: 2, access: "Driveway bay",
+    ownerWallet: "rGWrZyax5eXbi5gs49MRZKmm8ksc2QFAM", rating: 4.6, totalBookings: 53,
+    features: ["Garden-lined", "Quiet cul-de-sac", "Flat driveway"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW).toISOString(), endISO: new Date(NOW + hr(7)).toISOString() },
+    rules: ["Do not park over the garden bed edge."]
+  },
+  {
+    id: "unsw-026", title: "Alison Rd Kerbside", subtitle: "Near Centennial Park · 6 min walk",
+    address: "42 Alison Rd, Randwick NSW",
+    lat: -33.9108, lng: 151.2355,
+    ratePerHourXrp: 1.8, depositMultiple: 2, overstayMultiple: 2, access: "Kerbside bay",
+    ownerWallet: "rN7n3473SaZBCG4dFL80J7zBKaM3BPQFL", rating: 4.3, totalBookings: 31,
+    features: ["Wide road", "Park proximity"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW).toISOString(), endISO: new Date(NOW + hr(10)).toISOString() },
+    rules: ["Check street-sweeping signage on entry."]
+  },
+
+  // West (Todman Ave / Fitzgerald Ave, Kensington)
+  {
+    id: "unsw-027", title: "Todman Ave Flat Bay", subtitle: "West campus · 4 min walk",
+    address: "18 Todman Ave, Kensington NSW",
+    lat: -33.9172, lng: 151.2188,
+    ratePerHourXrp: 2.6, depositMultiple: 3, overstayMultiple: 2, access: "Open driveway",
+    ownerWallet: "rPT1SzmFn5GNiEWMvKgXW2aKuJGCFe5Va", rating: 4.7, totalBookings: 102,
+    features: ["Level surface", "Easy turnaround"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW).toISOString(), endISO: new Date(NOW + hr(5)).toISOString() },
+    rules: ["Leave 1 m clearance from garage door."]
+  },
+  // ==========================================
+  // 🟡 AVAILABLE SOON (Additional Spots)
+  // ==========================================
+
+  {
+    id: "unsw-029", title: "Perouse Rd Corner", subtitle: "Randwick east · 6 min walk",
+    address: "11 Perouse Rd, Randwick NSW",
+    lat: -33.9120, lng: 151.2430,
+    ratePerHourXrp: 2.0, depositMultiple: 2, overstayMultiple: 2, access: "Kerbside bay",
+    ownerWallet: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", rating: 4.4, totalBookings: 47,
+    features: ["Corner position", "Good visibility"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW + min(40)).toISOString(), endISO: new Date(NOW + hr(7)).toISOString() },
+    rules: ["Available in 40 mins."]
+  },
+  {
+    id: "unsw-030", title: "Irvine St Sheltered", subtitle: "Kingsford south · 7 min walk",
+    address: "22 Irvine St, Kingsford NSW",
+    lat: -33.9258, lng: 151.2305,
+    ratePerHourXrp: 1.8, depositMultiple: 2, overstayMultiple: 2, access: "Shaded driveway",
+    ownerWallet: "rLDYrujdKUfVx28MyFaad6tK9rB9KnEZkq", rating: 4.2, totalBookings: 29,
+    features: ["Overhead pergola", "Quiet street"], maxVehicleHeight: 2.0,
+    availability: { startISO: new Date(NOW + hr(1)).toISOString(), endISO: new Date(NOW + hr(8)).toISOString() },
+    rules: ["Available in 1 hour. Height limit 2.0 m."]
+  },
+  {
+    id: "unsw-031", title: "Rainbow St Wide Bay", subtitle: "Kingsford south edge · 8 min walk",
+    address: "35 Rainbow St, Kingsford NSW",
+    lat: -33.9270, lng: 151.2275,
+    ratePerHourXrp: 1.5, depositMultiple: 2, overstayMultiple: 2, access: "Open driveway",
+    ownerWallet: "rKowuBq4dwGGQMDU1MLPF9cBfM8yxkrXL", rating: 4.0, totalBookings: 18,
+    features: ["Extra-wide bay", "Suits SUVs"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW + hr(1.5)).toISOString(), endISO: new Date(NOW + hr(9)).toISOString() },
+    rules: ["Available in 1.5 hours. Pull forward fully."]
+  },
+
+  // ==========================================
+  // ⚪ AVAILABLE LATER (Additional Spots)
+  // ==========================================
+
+  {
+    id: "unsw-032", title: "St Pauls St Rear Bay", subtitle: "Randwick residential · 7 min walk",
+    address: "6 St Pauls St, Randwick NSW",
+    lat: -33.9142, lng: 151.2418,
+    ratePerHourXrp: 2.0, depositMultiple: 2, overstayMultiple: 2, access: "Rear driveway",
+    ownerWallet: "rMWuhsGpyTgJzLhKhPt2VvnYFAFcLAMEkP", rating: 4.3, totalBookings: 36,
+    features: ["Hidden rear lane", "Very secure"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW + hr(3)).toISOString(), endISO: new Date(NOW + hr(11)).toISOString() },
+    rules: ["Available in 3 hours. Access via rear laneway."]
+  },
+  {
+    id: "unsw-034", title: "Bundock St Overnight", subtitle: "Randwick south-east · 8 min walk",
+    address: "44 Bundock St, Randwick NSW",
+    lat: -33.9195, lng: 151.2420,
+    ratePerHourXrp: 1.0, depositMultiple: 2, overstayMultiple: 2, access: "Open driveway",
+    ownerWallet: "rN7n3473SaZBCG4dFL80J7zBKaM3BPQFL", rating: 4.2, totalBookings: 20,
+    features: ["Overnight OK", "Lowest rate", "Street lit"], maxVehicleHeight: null,
+    availability: { startISO: new Date(NOW + hr(6)).toISOString(), endISO: new Date(NOW + hr(24)).toISOString() },
+    rules: ["Available in 6 hours. Overnight stays welcome."]
   }
 ];
