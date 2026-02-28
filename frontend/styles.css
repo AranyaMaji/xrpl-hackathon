@@ -1,0 +1,2052 @@
+/* ════════════════════════════════════════════════════
+   ParkFlow — styles v4 (role-based + voting)
+   ════════════════════════════════════════════════════ */
+:root {
+    --bg: #0a0b0f;
+    --card: #11131a;
+    --muted: rgba(238, 241, 246, 0.48);
+    --text: #eef1f6;
+    --border: rgba(255, 255, 255, 0.07);
+    --accent: #6ae4ff;
+    --accentBg: rgba(106, 228, 255, 0.1);
+    --danger: #ff6b6b;
+    --warn: #ffb84d;
+    --green: #4dffb4;
+    --greenBg: rgba(77, 255, 180, 0.08);
+    --radius: 14px;
+    --font: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+html,
+body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+}
+
+body {
+    font-family: var(--font);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.modalOpen {
+    overflow: hidden;
+}
+
+#app {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    /* ADD THESE TWO LINES */
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Utilities ─────────────────────────────── */
+.muted {
+    color: var(--muted);
+}
+
+.tiny {
+    font-size: 12px;
+}
+
+.accent {
+    color: var(--accent);
+}
+
+.mono {
+    font-family: var(--mono);
+}
+
+/* ── Card base ─────────────────────────────── */
+.card {
+    background: rgba(14, 16, 22, 0.94);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+/* ════════════════════════════════════════════════════
+   Top bar
+   ════════════════════════════════════════════════════ */
+.topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: 10px 10px 0;
+}
+
+.searchCard {
+    width: min(600px, 100%);
+    padding: 11px 13px 10px;
+    pointer-events: auto;
+}
+
+.brandRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.brandLeft {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.brandActions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.brand {
+    font-weight: 900;
+    font-size: 17px;
+    letter-spacing: -0.3px;
+}
+
+.brandAccent {
+    color: var(--accent);
+}
+
+.pill {
+    font-size: 10px;
+    border: 1px solid rgba(106, 228, 255, 0.25);
+    background: var(--accentBg);
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pill.ready {
+    border-color: rgba(77, 255, 180, 0.3);
+    color: var(--green);
+}
+
+.pill.connecting {
+    border-color: rgba(255, 184, 77, 0.3);
+    color: var(--warn);
+}
+
+.pillDot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--warn);
+    animation: pulse 2.5s ease-out infinite;
+}
+
+.pill.ready .pillDot {
+    background: var(--green);
+}
+
+/* Role badge button */
+.btnRole {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(106, 228, 255, 0.25);
+    background: var(--accentBg);
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 150ms;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font);
+}
+
+.btnRole:hover {
+    background: rgba(106, 228, 255, 0.18);
+}
+
+.btnRole[data-role='owner'] {
+    border-color: rgba(77, 255, 180, 0.3);
+    background: var(--greenBg);
+    color: var(--green);
+}
+
+.btnRole[data-role='admin'] {
+    border-color: rgba(255, 184, 77, 0.3);
+    background: rgba(255, 184, 77, 0.08);
+    color: var(--warn);
+}
+
+/* List spot button */
+.btnList {
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid rgba(106, 228, 255, 0.25);
+    background: var(--accentBg);
+    color: var(--accent);
+    padding: 5px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 150ms;
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btnList:hover {
+    background: rgba(106, 228, 255, 0.2);
+    border-color: rgba(106, 228, 255, 0.5);
+}
+
+/* Search input */
+.searchRow {
+    position: relative;
+    margin-top: 9px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.searchRow input {
+    margin-top: 0;
+    padding-left: 36px;
+}
+
+input {
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    outline: none;
+    font-size: 13px;
+    font-family: var(--font);
+    transition:
+        border-color 150ms,
+        background 150ms;
+}
+
+input:focus {
+    border-color: rgba(106, 228, 255, 0.35);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+input::placeholder {
+    color: rgba(238, 241, 246, 0.28);
+}
+
+/* ── Filter bar ── */
+.filterBar {
+    margin-top: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.filterBar::-webkit-scrollbar {
+    display: none;
+}
+
+.filterChips {
+    display: flex;
+    gap: 5px;
+    width: max-content;
+}
+
+.filterChip {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 140ms;
+    font-family: var(--font);
+}
+
+.filterChip:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text);
+}
+
+.filterChip.active {
+    background: rgba(106, 228, 255, 0.12);
+    border-color: rgba(106, 228, 255, 0.35);
+    color: var(--accent);
+}
+
+.hint {
+    margin-top: 7px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* ════════════════════════════════════════════════════
+   Map pin markers
+   ════════════════════════════════════════════════════ */
+.pinMarker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transform-origin: bottom center;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.55));
+    transition:
+        transform 140ms ease,
+        filter 140ms ease;
+    user-select: none;
+}
+
+.pinMarker:hover {
+    transform: scale(1.12) translateY(-3px);
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.65));
+    z-index: 5;
+}
+
+.pinMarker.active {
+    transform: scale(1.14) translateY(-3px);
+    filter: drop-shadow(0 6px 18px rgba(106, 228, 255, 0.35));
+    z-index: 10;
+}
+
+.pinBubble {
+    background: rgba(14, 16, 22, 0.96);
+    border: 1.5px solid rgba(106, 228, 255, 0.45);
+    color: var(--accent);
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+    line-height: 1.2;
+    font-family: var(--font);
+    text-align: center;
+    letter-spacing: -0.1px;
+}
+
+.pinTip {
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 9px solid rgba(106, 228, 255, 0.45);
+    margin-top: -1px;
+}
+
+/* ── Status colour variants ── */
+.pinMarker.status-AVAILABLE .pinBubble {
+    border-color: rgba(106, 228, 255, 0.5);
+    color: var(--accent);
+}
+
+.pinMarker.status-AVAILABLE .pinTip {
+    border-top-color: rgba(106, 228, 255, 0.5);
+}
+
+.pinMarker.status-BOOKED .pinBubble {
+    border-color: rgba(255, 184, 77, 0.5);
+    color: var(--warn);
+}
+
+.pinMarker.status-BOOKED .pinTip {
+    border-top-color: rgba(255, 184, 77, 0.5);
+}
+
+.pinMarker.status-ACTIVE .pinBubble {
+    border-color: rgba(77, 255, 180, 0.5);
+    color: var(--green);
+}
+
+.pinMarker.status-ACTIVE .pinTip {
+    border-top-color: rgba(77, 255, 180, 0.5);
+}
+
+.pinMarker.status-EXPIRED .pinBubble {
+    border-color: rgba(255, 107, 107, 0.5);
+    color: var(--danger);
+}
+
+.pinMarker.status-EXPIRED .pinTip {
+    border-top-color: rgba(255, 107, 107, 0.5);
+}
+
+.pinMarker.status-CONFLICT .pinBubble {
+    border-color: rgba(255, 184, 77, 0.6);
+    color: var(--warn);
+    animation: conflictPulse 1.5s ease-in-out infinite;
+}
+
+.pinMarker.status-CONFLICT .pinTip {
+    border-top-color: rgba(255, 184, 77, 0.6);
+}
+
+@keyframes conflictPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.pinMarker.status-RESOLVED_SAFE .pinBubble,
+.pinMarker.status-RESOLVED_PENALTY .pinBubble {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--muted);
+    background: rgba(14, 16, 22, 0.8);
+}
+
+.pinMarker.status-RESOLVED_SAFE .pinTip,
+.pinMarker.status-RESOLVED_PENALTY .pinTip {
+    border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Active (selected) states ── */
+.pinMarker.active .pinBubble {
+    background: var(--accent);
+    color: #0a0b0f;
+    border-color: var(--accent);
+}
+
+.pinMarker.active .pinTip {
+    border-top-color: var(--accent);
+}
+
+.pinMarker.status-ACTIVE.active .pinBubble {
+    background: var(--green);
+    border-color: var(--green);
+}
+
+.pinMarker.status-ACTIVE.active .pinTip {
+    border-top-color: var(--green);
+}
+
+.pinMarker.status-CONFLICT.active .pinBubble {
+    background: var(--warn);
+    border-color: var(--warn);
+    animation: none;
+}
+
+.pinMarker.status-CONFLICT.active .pinTip {
+    border-top-color: var(--warn);
+}
+
+/* ════════════════════════════════════════════════════
+   Bottom sheet
+   ════════════════════════════════════════════════════ */
+.sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px;
+    z-index: 20;
+    pointer-events: none;
+    transform: translateY(110%);
+    transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sheet.open {
+    transform: translateY(0%);
+}
+
+.sheetInner {
+    max-width: 560px;
+    margin: 0 auto;
+    pointer-events: auto;
+    background: rgba(14, 16, 22, 0.98);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 12px 14px 14px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    max-height: calc(90vh - 24px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.sheetInner::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sheetInner::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sheetInner::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+}
+
+.sheetHandle {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    margin: 0 auto 10px;
+    background: rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+}
+
+/* Spot photo / hero block */
+.spotPhoto {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        135deg,
+        rgba(106, 228, 255, 0.08),
+        rgba(77, 255, 180, 0.04)
+    );
+    border: 1px solid rgba(106, 228, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.spotPhotoIcon {
+    font-size: 34px;
+    line-height: 1;
+}
+
+.spotPhotoBadges {
+    position: absolute;
+    bottom: 7px;
+    right: 7px;
+    display: flex;
+    gap: 5px;
+}
+
+.spotPhotoBadge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(14, 16, 22, 0.75);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    backdrop-filter: blur(4px);
+}
+
+/* Sheet header */
+.sheetHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.sheetActions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.sheetTitleRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sheetTitle {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+}
+
+.sheetMeta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* Status badge */
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.statusBadge.status-AVAILABLE {
+    background: rgba(106, 228, 255, 0.1);
+    color: var(--accent);
+}
+
+.statusBadge.status-BOOKED {
+    background: rgba(255, 184, 77, 0.1);
+    color: var(--warn);
+}
+
+.statusBadge.status-ACTIVE {
+    background: var(--greenBg);
+    color: var(--green);
+}
+
+.statusBadge.status-EXPIRED {
+    background: rgba(255, 107, 107, 0.08);
+    color: var(--danger);
+}
+
+.statusBadge.status-CONFLICT {
+    background: rgba(255, 184, 77, 0.12);
+    color: var(--warn);
+}
+
+.statusBadge.status-RESOLVED_SAFE {
+    background: var(--greenBg);
+    color: var(--green);
+}
+
+.statusBadge.status-RESOLVED_PENALTY {
+    background: rgba(255, 107, 107, 0.08);
+    color: var(--danger);
+}
+
+/* ════════════════════════════════════════════════════
+   Shared layout helpers
+   ════════════════════════════════════════════════════ */
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 11px 0;
+}
+
+.grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+}
+
+.infoCard {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 11px;
+    padding: 9px 10px;
+}
+
+.label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.value {
+    margin-top: 3px;
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.sectionTitle {
+    font-weight: 800;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+/* Escrow explainer */
+.callout {
+    border: 1px solid rgba(106, 228, 255, 0.12);
+    background: rgba(106, 228, 255, 0.03);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.calloutTitle {
+    font-weight: 900;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.escrowDiagram {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 0 2px;
+}
+
+.escrowStep {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.escrowStepNum {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accentBg);
+    border: 1px solid rgba(106, 228, 255, 0.25);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.escrowArrow {
+    color: rgba(106, 228, 255, 0.3);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════
+   Voting UI
+   ════════════════════════════════════════════════════ */
+.voteBanner {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 184, 77, 0.06);
+    border: 1px solid rgba(255, 184, 77, 0.18);
+    color: var(--warn);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.voteButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.voteBtn {
+    flex: 1;
+    border-radius: 12px;
+    padding: 11px 14px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 12px;
+    font-family: var(--font);
+    transition: all 150ms;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.voteBtn:active {
+    transform: scale(0.97);
+}
+
+.voteBtn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.voteBtn.safe {
+    border: 1px solid rgba(77, 255, 180, 0.25);
+    background: var(--greenBg);
+    color: var(--green);
+}
+
+.voteBtn.safe:hover:not(:disabled) {
+    background: rgba(77, 255, 180, 0.15);
+    border-color: rgba(77, 255, 180, 0.4);
+}
+
+.voteBtn.penalty {
+    border: 1px solid rgba(255, 107, 107, 0.22);
+    background: rgba(255, 107, 107, 0.06);
+    color: var(--danger);
+}
+
+.voteBtn.penalty:hover:not(:disabled) {
+    background: rgba(255, 107, 107, 0.12);
+    border-color: rgba(255, 107, 107, 0.4);
+}
+
+/* Conflict banner */
+.conflictBanner {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 184, 77, 0.06);
+    border: 1px solid rgba(255, 184, 77, 0.22);
+    color: var(--warn);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+}
+
+/* Admin vote card */
+.adminVoteCard {
+    border: 1px solid rgba(255, 184, 77, 0.22);
+    background: rgba(255, 184, 77, 0.04);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.adminVoteTitle {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--warn);
+    margin-bottom: 10px;
+}
+
+.adminVoteInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.adminVoteRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+}
+
+.adminVoteRow .voteLabel {
+    font-weight: 700;
+}
+
+.adminVoteRow .voteValue {
+    font-weight: 800;
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.adminVoteRow .voteValue.safe {
+    color: var(--green);
+}
+
+.adminVoteRow .voteValue.penalty {
+    color: var(--danger);
+}
+
+/* Resolution banner */
+.resolutionBanner {
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.resolutionBanner.safe {
+    background: rgba(77, 255, 180, 0.06);
+    border: 1px solid rgba(77, 255, 180, 0.22);
+    color: var(--green);
+}
+
+.resolutionBanner.penalty {
+    background: rgba(255, 107, 107, 0.06);
+    border: 1px solid rgba(255, 107, 107, 0.22);
+    color: var(--danger);
+}
+
+.resolutionIcon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+/* ════════════════════════════════════════════════════
+   Buttons
+   ════════════════════════════════════════════════════ */
+.btn,
+.btnPrimary {
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font-weight: 800;
+    font-size: 13px;
+    font-family: var(--font);
+    transition:
+        background 150ms,
+        border-color 150ms,
+        transform 100ms;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn:active,
+.btnPrimary:active {
+    transform: scale(0.98);
+}
+
+.btnPrimary {
+    width: 100%;
+    background: rgba(106, 228, 255, 0.1);
+    border-color: rgba(106, 228, 255, 0.25);
+    color: var(--accent);
+}
+
+.btnPrimary:hover:not(:disabled) {
+    background: rgba(106, 228, 255, 0.18);
+    border-color: rgba(106, 228, 255, 0.45);
+}
+
+.btnPrimary.btnGreen {
+    background: var(--greenBg);
+    border-color: rgba(77, 255, 180, 0.25);
+    color: var(--green);
+}
+
+.btnPrimary.btnGreen:hover:not(:disabled) {
+    background: rgba(77, 255, 180, 0.15);
+    border-color: rgba(77, 255, 180, 0.4);
+}
+
+.btnDanger {
+    flex: 1;
+    border-radius: 12px;
+    padding: 9px 14px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 107, 107, 0.22);
+    background: rgba(255, 107, 107, 0.06);
+    color: var(--danger);
+    font-weight: 800;
+    font-size: 12px;
+    font-family: var(--font);
+    transition:
+        background 150ms,
+        transform 100ms;
+    white-space: nowrap;
+}
+
+.btnDanger:hover {
+    background: rgba(255, 107, 107, 0.12);
+}
+
+.btnDanger:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.iconBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 150ms;
+    font-family: var(--font);
+}
+
+.iconBtn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: var(--text);
+}
+
+/* ════════════════════════════════════════════════════
+   Active booking card
+   ════════════════════════════════════════════════════ */
+.activeBookingCard {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    animation: slideUp 300ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.activeInner {
+    width: min(560px, 100%);
+    background: rgba(10, 12, 16, 0.98);
+    border: 1px solid rgba(77, 255, 180, 0.22);
+    border-radius: 18px;
+    padding: 13px;
+    backdrop-filter: blur(18px);
+    pointer-events: auto;
+    box-shadow:
+        0 0 0 1px rgba(77, 255, 180, 0.04),
+        0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.activeInner.expired {
+    border-color: rgba(255, 107, 107, 0.25);
+    box-shadow:
+        0 0 0 1px rgba(255, 107, 107, 0.04),
+        0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.activeInner.conflict {
+    border-color: rgba(255, 184, 77, 0.25);
+    box-shadow:
+        0 0 0 1px rgba(255, 184, 77, 0.04),
+        0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.activeTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.activeLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.activeDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    animation: pulse 1.8s ease-out infinite;
+}
+
+.activeDot.expired {
+    background: var(--danger);
+}
+
+.activeDot.conflict {
+    background: var(--warn);
+}
+
+.activeDot.resolved {
+    background: var(--muted);
+    animation: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(77, 255, 180, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(77, 255, 180, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(77, 255, 180, 0);
+    }
+}
+
+.activeSpotName {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.activeTimer {
+    font-size: 19px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--green);
+    letter-spacing: 0.3px;
+    font-family: var(--mono);
+}
+
+.activeTimer.expired {
+    color: var(--danger);
+}
+
+/* Escrow lifecycle */
+.escrowLifecycle {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 10px;
+    padding: 6px 0;
+}
+
+.escrowStage {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.escrowStage .escrowDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    flex-shrink: 0;
+}
+
+.escrowStage.completed {
+    color: var(--green);
+}
+
+.escrowStage.completed .escrowDot {
+    background: var(--green);
+    border-color: var(--green);
+}
+
+.escrowStage.active {
+    color: var(--accent);
+}
+
+.escrowStage.active .escrowDot {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: pulse 2s ease-out infinite;
+}
+
+.escrowLine {
+    flex: 1;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+    min-width: 8px;
+}
+
+.escrowLine.completed {
+    background: var(--green);
+}
+
+.trickleRow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.trickleBar {
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.trickleFill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--green), var(--accent));
+    transition: width 1s linear;
+    position: relative;
+}
+
+.trickleFill::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    background: rgba(255, 255, 255, 0.25);
+    filter: blur(3px);
+    border-radius: 999px;
+}
+
+.trickleLabels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trickleLabel {
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.trickleRate {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.activeActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* ════════════════════════════════════════════════════
+   Modal overlay + card
+   ════════════════════════════════════════════════════ */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+
+@media (min-width: 500px) {
+    .modalOverlay {
+        align-items: center;
+    }
+}
+
+.modalOverlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modalCard {
+    width: min(460px, 100%);
+    background: rgba(12, 14, 20, 0.99);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    padding: 18px;
+    backdrop-filter: blur(20px);
+    transform: translateY(24px) scale(0.97);
+    transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+}
+
+.modalOverlay.open .modalCard {
+    transform: translateY(0) scale(1);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.modalTitle {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+}
+
+.modalSpotName {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+
+/* ── Duration section ── */
+.durationSection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 2px 0;
+}
+
+.hoursLabel {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.quickDurations {
+    display: flex;
+    gap: 6px;
+}
+
+.quickBtn {
+    flex: 1;
+    padding: 7px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 150ms;
+    text-align: center;
+    font-family: var(--font);
+}
+
+.quickBtn.selected {
+    background: rgba(106, 228, 255, 0.12);
+    border-color: rgba(106, 228, 255, 0.35);
+    color: var(--accent);
+}
+
+.quickBtn:hover:not(.selected) {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+}
+
+.hoursStepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stepBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 150ms;
+    padding: 0;
+    font-family: var(--font);
+    line-height: 1;
+}
+
+.stepBtn:hover:not(:disabled) {
+    background: rgba(106, 228, 255, 0.12);
+    border-color: rgba(106, 228, 255, 0.35);
+    color: var(--accent);
+}
+
+.hoursDisplay {
+    font-size: 17px;
+    font-weight: 900;
+    min-width: 64px;
+    text-align: center;
+}
+
+/* ── Cost breakdown ── */
+.costBreakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.costRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.costRow.total {
+    padding-top: 9px;
+    border-top: 1px solid var(--border);
+    font-weight: 900;
+    font-size: 14px;
+}
+
+.modalActions {
+    display: flex;
+    gap: 8px;
+}
+
+.modalActions .btn {
+    flex-shrink: 0;
+}
+
+/* ── Success / XRPL tx view ── */
+.successCheck {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: rgba(77, 255, 180, 0.08);
+    border: 2px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px auto 14px;
+    animation: popIn 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.4);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.successTitle {
+    font-size: 19px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: -0.3px;
+}
+
+.successSub {
+    text-align: center;
+    margin-bottom: 14px;
+    margin-top: 2px;
+}
+
+.successStartBtn {
+    margin-top: 4px;
+}
+
+/* XRPL transaction block */
+.xrplBlock {
+    border: 1px solid rgba(106, 228, 255, 0.15);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.xrplBlockHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(106, 228, 255, 0.04);
+    border-bottom: 1px solid rgba(106, 228, 255, 0.08);
+}
+
+.xrplTxType {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-family: var(--mono);
+}
+
+.networkBadge {
+    font-size: 9px;
+    font-weight: 700;
+    background: var(--greenBg);
+    border: 1px solid rgba(77, 255, 180, 0.2);
+    color: var(--green);
+    padding: 2px 7px;
+    border-radius: 999px;
+    letter-spacing: 0.3px;
+}
+
+.xrplRows {
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.xrplRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    gap: 8px;
+}
+
+.xrplRow .mono {
+    font-size: 10px;
+    word-break: break-all;
+    text-align: right;
+    max-width: 180px;
+}
+
+/* Loading view */
+.loadingSpinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid rgba(106, 228, 255, 0.15);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loadingTitle {
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: -0.2px;
+}
+
+/* ════════════════════════════════════════════════════
+   Owner listing modal
+   ════════════════════════════════════════════════════ */
+.listModalCard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: calc(100vh - 20px);
+}
+
+.formScroll {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding-right: 2px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.formGroup label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.formError {
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(255, 107, 107, 0.06);
+    border: 1px solid rgba(255, 107, 107, 0.18);
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* ════════════════════════════════════════════════════
+   Role selector overlay
+   ════════════════════════════════════════════════════ */
+.roleOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 400ms ease both;
+}
+
+.roleOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.roleCard {
+    width: min(400px, 100%);
+    background: rgba(12, 14, 20, 0.99);
+    border: 1px solid rgba(106, 228, 255, 0.12);
+    border-radius: 24px;
+    padding: 28px 22px 22px;
+    text-align: center;
+    animation: popIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
+}
+
+.roleIcon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.roleTitle {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+}
+
+.roleSub {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.roleDesc {
+    font-size: 12px;
+}
+
+.roleButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.roleBtn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 180ms;
+    color: var(--text);
+    font-family: var(--font);
+}
+
+.roleBtn:hover {
+    background: rgba(106, 228, 255, 0.06);
+    border-color: rgba(106, 228, 255, 0.25);
+}
+
+.roleBtn:active {
+    transform: scale(0.98);
+}
+
+.roleBtnIcon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.roleBtnTitle {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 1px;
+}
+
+.adminPassGroup {
+    text-align: left;
+}
+
+.roleFooter {
+    margin-top: 14px;
+}
+
+/* ════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════ */
+.toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(14px);
+    background: rgba(10, 12, 16, 0.98);
+    border: 1px solid rgba(77, 255, 180, 0.25);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 200;
+    opacity: 0;
+    transition:
+        opacity 250ms,
+        transform 250ms;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    max-width: calc(100vw - 24px);
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ════════════════════════════════════════════════════
+   Responsive tweaks
+   ════════════════════════════════════════════════════ */
+@media (max-width: 400px) {
+    .brandActions {
+        gap: 4px;
+    }
+
+    .btnList span {
+        display: none;
+    }
+
+    .brand {
+        font-size: 15px;
+    }
+
+    .searchCard {
+        padding: 9px 10px 8px;
+    }
+
+    .pill {
+        font-size: 9px;
+        padding: 3px 7px;
+    }
+
+    .voteButtons {
+        flex-direction: column;
+    }
+
+    .roleCard {
+        padding: 20px 16px 16px;
+    }
+}
+
+/* Leaflet marker positioning */
+.leaflet-div-icon {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+}
+
+.pinWrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-50%);
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+    background: var(--bg) !important;
+    font-family: var(--font) !important;
+}
+
+.leaflet-control-zoom {
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+    background: rgba(14, 16, 22, 0.92) !important;
+    color: var(--muted) !important;
+    border-bottom: 1px solid var(--border) !important;
+    width: 34px !important;
+    height: 34px !important;
+    line-height: 34px !important;
+    font-size: 16px !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: rgba(14, 16, 22, 1) !important;
+    color: var(--text) !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(14, 16, 22, 0.7) !important;
+    color: var(--muted) !important;
+    font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+    color: var(--accent) !important;
+}
+
+/* Hide default leaflet marker shadows */
+.leaflet-marker-shadow {
+    display: none !important;
+}
+/* ════════════════════════════════════════════════════
+   Comprehensive Form UI Additions
+   ════════════════════════════════════════════════════ */
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 4px;
+}
+select,
+textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    outline: none;
+    font-size: 13px;
+    font-family: var(--font);
+    transition: border-color 150ms;
+    appearance: none;
+}
+select:focus,
+textarea:focus {
+    border-color: rgba(106, 228, 255, 0.35);
+}
+select {
+    cursor: pointer;
+}
+textarea {
+    resize: vertical;
+    min-height: 68px;
+}
+.formGroup input {
+    margin-top: 0;
+}
+input[type='datetime-local'] {
+    color-scheme: dark;
+}
+
+.earningsPreview {
+    border: 1px solid var(--border);
+    background: rgba(77, 255, 180, 0.02);
+    border-radius: 12px;
+    padding: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.earningsLabel {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.earningsValue {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--green);
+    font-family: var(--mono);
+}
+/* ════════════════════════════════════════════════════
+   XRPL Explorer Links
+   ════════════════════════════════════════════════════ */
+.txLinksRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.txLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: var(--font);
+    font-weight: 800;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(106, 228, 255, 0.08);
+    border: 1px solid rgba(106, 228, 255, 0.2);
+    transition: all 150ms;
+}
+
+.txLink:hover {
+    background: rgba(106, 228, 255, 0.15);
+    border-color: rgba(106, 228, 255, 0.4);
+}
+
+.txLink.danger {
+    color: var(--danger);
+    background: rgba(255, 107, 107, 0.08);
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+.txLink.danger:hover {
+    background: rgba(255, 107, 107, 0.15);
+    border-color: rgba(255, 107, 107, 0.4);
+}
+/* ════════════════════════════════════════════════════
+   XLS-20 NFT Reputation UI
+   ════════════════════════════════════════════════════ */
+.nftBadge {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 215, 0, 0.15),
+        rgba(255, 105, 180, 0.05)
+    );
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #ffd700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+.nftIcon {
+    font-size: 13px;
+}
+
+.nftCallout {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 215, 0, 0.08),
+        rgba(255, 105, 180, 0.03)
+    );
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 12px;
+    text-align: center;
+    animation: pulseGold 2.5s infinite;
+}
+
+@keyframes pulseGold {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.3);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 215, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+.trustTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffd700;
+    font-size: 10px;
+    font-weight: 800;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(255, 215, 0, 0.1);
+    margin-top: 6px;
+}
+/* ════════════════════════════════════════════════════
+   Owner Approval Alerts
+   ════════════════════════════════════════════════════ */
+.ownerAlertsContainer {
+    position: fixed;
+    top: 75px;
+    right: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.approvalToast {
+    background: rgba(14, 16, 22, 0.96);
+    border: 1px solid rgba(106, 228, 255, 0.3);
+    border-radius: 14px;
+    padding: 14px;
+    width: min(280px, calc(100vw - 20px));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(14px);
+    pointer-events: auto; /* Re-enable clicks for the toast */
+    animation: slideInRight 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
