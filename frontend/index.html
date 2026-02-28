@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkNet | XRPL Explorer Ready</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="map-section">
+            <div class="map-placeholder">
+                <div class="pin"><span>$1/hr</span></div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-header">
+                <h1>UNSW Spot #42</h1>
+                <p>Randwick, NSW • Managed Asset</p>
+            </div>
+
+            <div class="card">
+                <h3>1. System Initialization</h3>
+                <button id="initBtn" class="btn secondary">Fund Testnet Wallets</button>
+                <div id="initStatus" class="status-box"></div>
+            </div>
+
+            <div id="parkerStep" class="card" style="display:none;">
+                <h3>2. Parker Agreement</h3>
+                <div id="bookingUI">
+                    <button id="bookBtn" class="btn primary">Secure Booking</button>
+                </div>
+                <div id="arrivalUI" style="display:none;">
+                    <button id="startBtn" class="btn safe">I'm Here: Start Parking</button>
+                </div>
+                <div id="parkerStatus" class="status-box"></div>
+            </div>
+
+            <div id="votingStep" class="card" style="display:none;">
+                <h3>3. Multi-Sig Consensus (2/3)</h3>
+                <p class="hint">Votes determine the release of locked XRP.</p>
+                <div class="vote-grid">
+                    <div class="vote-row">
+                        <span>Parker</span>
+                        <button onclick="castVote('parker', 'safe')" class="btn-sm safe">Safe</button>
+                        <button onclick="castVote('parker', 'penalty')" class="btn-sm danger">Penalty</button>
+                    </div>
+                    <div class="vote-row">
+                        <span>Owner</span>
+                        <button onclick="castVote('owner', 'safe')" class="btn-sm safe">Safe</button>
+                        <button onclick="castVote('owner', 'penalty')" class="btn-sm danger">Penalty</button>
+                    </div>
+                    <div class="vote-row">
+                        <span>Admin</span>
+                        <button onclick="castVote('admin', 'safe')" class="btn-sm safe">Safe</button>
+                        <button onclick="castVote('admin', 'penalty')" class="btn-sm danger">Penalty</button>
+                    </div>
+                </div>
+                <div id="voteStatus" class="status-box"></div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
