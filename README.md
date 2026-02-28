@@ -1,4 +1,4 @@
-# 🅿️ ParkO
+# 🅿️ XRPark
 
 **A Decentralized Peer-to-Peer Parking Marketplace Powered by the XRP Ledger.**
 
