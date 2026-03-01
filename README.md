@@ -51,6 +51,6 @@ When a Parker chooses to pay in **AUDD**:
 
 **1. Clone and Install**
 ```bash
-git clone [https://github.com/yourusername/xrpark.git](https://github.com/yourusername/xrpark.git)
+git clone https://github.com/AranyaMaji/xrpl-hackathon.git
 cd xrpark
 npm install
