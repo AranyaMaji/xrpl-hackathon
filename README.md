@@ -2,7 +2,7 @@
 
 **A Decentralized Peer-to-Peer Parking Marketplace Powered by the XRP Ledger.**
 
-Built for the XRPL Hackathon 6. XRPark eliminates predatory parking fees by directly connecting driveway owners with drivers using trustless, time-released on-chain escrows. 
+Built for the XRPL Hackathon 2026. XRPark eliminates predatory parking fees by directly connecting driveway owners with drivers using trustless, time-released on-chain escrows. 
 
 ## 🚀 The Hackathon Edge (Core Features)
 
