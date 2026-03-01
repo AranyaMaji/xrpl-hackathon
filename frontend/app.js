@@ -1,12 +1,11 @@
 // ─────────────────────────────────────────────────
-// ParkFlow — app.js v5 (With Approval Gateway)
+// ParkFlow — app.js v6 (Global Transparency Links)
 // ─────────────────────────────────────────────────
 const POLL_MS = 1500;
 
 // ─── DOM Refs ────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 
-// Top bar
 const roleBadge = $('roleBadge');
 const roleBadgeIcon = $('roleBadgeIcon');
 const roleBadgeLabel = $('roleBadgeLabel');
@@ -17,7 +16,8 @@ const searchInput = $('searchInput');
 const hintText = $('hintText');
 const filterChips = $('filterChips');
 
-// Sheet
+const closeActiveCardBtn = $('closeActiveCardBtn');
+
 const sheet = $('sheet');
 const sheetHandle = $('sheetHandle');
 const closeSheetBtn = $('closeSheetBtn');
@@ -34,7 +34,6 @@ const durationValue = $('durationValue');
 const elapsedValue = $('elapsedValue');
 const directionsBtn = $('directionsBtn');
 
-// Active booking card
 const activeBookingCard = $('activeBookingCard');
 const activeSpotName = $('activeSpotName');
 const activeSubText = $('activeSubText');
@@ -46,8 +45,8 @@ const trickleFill = $('trickleFill');
 const trickleLabel = $('trickleLabel');
 const trickleRate = $('trickleRate');
 const endBookingBtn = $('endBookingBtn');
+const activeLedgerLog = $('activeLedgerLog'); // NEW
 
-// Modal
 const modal = $('modal');
 const modalView = $('modalView');
 const successView = $('successView');
@@ -67,12 +66,10 @@ const successDetails = $('successDetails');
 const successStartBtn = $('successStartBtn');
 const modalConfirmBtn = $('modalConfirmBtn');
 
-// List modal
 const listModal = $('listModal');
 const listModalCloseBtn = $('listModalCloseBtn');
 const listModalCancelBtn = $('listModalCancelBtn');
 
-// Role overlay
 const roleOverlay = $('roleOverlay');
 const roleButtons = $('roleButtons');
 const adminPassGroup = $('adminPassGroup');
@@ -81,25 +78,23 @@ const adminPassSubmit = $('adminPassSubmit');
 const adminPassError = $('adminPassError');
 
 // ─── State ───────────────────────────────────────
-let role = null; // 'parker' | 'owner' | 'admin'
-let spots = []; // from GET /api/spots
-let selId = null; // selected spot id (sheet)
-let myId = null; // tracked spot id (active card)
+let role = null;
+let spots = [];
+let selId = null;
+let myId = null;
 let map = null;
 let markers = [];
 let bookHrs = 1;
 let sysReady = false;
 let currentFilter = 'all';
 let pollTimer = null;
-let voting = false; // prevents double-voting
-let isStartingParking = false; // NEW: Prevents button re-rendering during polls
+let voting = false;
+let isStartingParking = false;
 
-// Allow inline HTML functions to call handleVote
 window.handleVote = handleVote;
 
 // ─── Helpers ─────────────────────────────────────
 function showToast(msg, color = 'green') {
-    console.log(`[UI] Toast Notification: "${msg}"`);
     const t = document.createElement('div');
     t.className = 'toast';
     t.textContent = msg;
@@ -161,22 +156,57 @@ function statusGrad(s) {
 }
 
 async function api(method, path, body) {
-    console.log(`[API REQUEST] ${method} /api${path}`, body ? body : '');
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(`/api${path}`, opts);
     const data = await res.json();
-    if (!res.ok) {
-        console.error(`[API ERROR] Response from /api${path}:`, data.error);
-        throw new Error(data.error || `HTTP ${res.status}`);
-    }
-    console.log(`[API SUCCESS] /api${path}:`, data);
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     return data;
+}
+
+// NEW: Global Ledger HTML Generator
+function generateActivityLogHTML(spot, isSafe = null) {
+    if (
+        !spot.swapHash &&
+        !spot.channelCreateHash &&
+        !spot.escrowCreateHash &&
+        !spot.lastTrickleHash &&
+        !spot.resolutionHash
+    )
+        return '';
+
+    let html = `
+    <div class="ledgerLog">
+        <div class="ledgerLogTitle">On-Chain Activity Log</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">`;
+
+    const createLog = (label, hash, colorClass = '') => `
+        <div class="logItem">
+            <span>${label}</span>
+            <a href="https://testnet.xrpl.org/transactions/${hash}" target="_blank" class="logLink ${colorClass}">${hash.substring(0, 8)}...${hash.substring(hash.length - 6)} ↗</a>
+        </div>`;
+
+    if (spot.swapHash) html += createLog('AMM DEX Swap', spot.swapHash);
+    if (spot.channelCreateHash)
+        html += createLog('Stream Channel Opened', spot.channelCreateHash);
+    if (spot.escrowCreateHash)
+        html += createLog('Escrow Collateral Locked', spot.escrowCreateHash);
+    if (spot.lastTrickleHash)
+        html += createLog('Latest Stream Claim', spot.lastTrickleHash);
+
+    if (spot.resolutionHash) {
+        html += createLog(
+            isSafe ? 'Collateral Refunded' : 'Collateral Slashed',
+            spot.resolutionHash,
+            isSafe ? 'safe' : 'danger',
+        );
+    }
+    html += `</div></div>`;
+    return html;
 }
 
 // ─── Role Selection ──────────────────────────────
 function setRole(r) {
-    console.log(`[UI EVENT] Role selected: ${r.toUpperCase()}`);
     role = r;
     roleOverlay.classList.add('hidden');
     setTimeout(() => {
@@ -193,15 +223,12 @@ function setRole(r) {
     roleBadge.setAttribute('data-role', r);
 
     listSpotBtn.style.display = r === 'owner' ? '' : 'none';
-
     showToast(`Logged in as ${roleBadgeLabel.textContent}`);
     renderMarkers();
-
     if (sheet.classList.contains('open')) updateSheet();
 }
 
 function openRoleSelector() {
-    console.log(`[UI EVENT] Opening Role Selector`);
     role = null;
     myId = null;
     selId = null;
@@ -215,26 +242,18 @@ function openRoleSelector() {
     roleOverlay.classList.remove('hidden');
 }
 
-// ─── Map ─────────────────────────────────────────
 function initMap() {
-    console.log(`[SYSTEM] Initializing Leaflet map...`);
     map = L.map('map', { zoomControl: false }).setView([-33.918, 151.231], 15);
     L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        {
-            attribution: '© <a href="https://carto.com/">CARTO</a>',
-            maxZoom: 19,
-            subdomains: 'abcd',
-        },
+        { maxZoom: 19, subdomains: 'abcd' },
     ).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-
     map.on('click', () => {
         if (sheet.classList.contains('open')) closeSheet();
     });
 }
 
-// ─── Markers ─────────────────────────────────────
 function getFilteredSpots() {
     const q = searchInput.value.trim().toLowerCase();
     let list = spots;
@@ -247,19 +266,12 @@ function getFilteredSpots() {
 function renderMarkers() {
     markers.forEach((m) => map.removeLayer(m));
     markers = [];
-
     const filtered = getFilteredSpots();
     updateHint(filtered);
 
     for (const spot of filtered) {
         const isSelected = selId === spot.id;
-        const html = `<div class="pinWrap">
-      <div class="pinMarker status-${spot.status}${isSelected ? ' active' : ''}" data-id="${spot.id}">
-        <div class="pinBubble"><span>${spot.price} XRP/hr</span></div>
-        <div class="pinTip"></div>
-      </div>
-    </div>`;
-
+        const html = `<div class="pinWrap"><div class="pinMarker status-${spot.status}${isSelected ? ' active' : ''}" data-id="${spot.id}"><div class="pinBubble"><span>${spot.price} XRP/hr</span></div><div class="pinTip"></div></div></div>`;
         const icon = L.divIcon({
             className: '',
             html,
@@ -267,12 +279,7 @@ function renderMarkers() {
             iconAnchor: [0, 0],
         });
         const m = L.marker([spot.lat, spot.lng], { icon }).addTo(map);
-        m.on('click', () => {
-            console.log(
-                `[MAP EVENT] Clicked pin: ${spot.id} (Status: ${spot.status})`,
-            );
-            selectSpot(spot);
-        });
+        m.on('click', () => selectSpot(spot));
         markers.push(m);
     }
 }
@@ -288,9 +295,7 @@ function updateHint(filtered) {
         return;
     }
     const counts = {};
-    list.forEach((s) => {
-        counts[s.status] = (counts[s.status] || 0) + 1;
-    });
+    list.forEach((s) => (counts[s.status] = (counts[s.status] || 0) + 1));
     const parts = [`${list.length} spot${list.length !== 1 ? 's' : ''}`];
     if (counts.AVAILABLE) parts.push(`${counts.AVAILABLE} available`);
     if (counts.ACTIVE) parts.push(`${counts.ACTIVE} active`);
@@ -302,7 +307,6 @@ function updateHint(filtered) {
     hintText.textContent = parts.join(' \u00b7 ');
 }
 
-// ─── System Status ───────────────────────────────
 function updateSystemPill() {
     if (sysReady) {
         systemPill.classList.add('ready');
@@ -313,7 +317,6 @@ function updateSystemPill() {
     }
 }
 
-// ─── Owner Alerts UI ─────────────────────────────
 function renderOwnerAlerts(pendingSpots) {
     const container = $('ownerAlertsContainer');
     if (!container) return;
@@ -333,18 +336,15 @@ function renderOwnerAlerts(pendingSpots) {
         <div class="approvalToast">
             <div style="font-weight:900; font-size:14px; margin-bottom:4px; color:var(--accent);">Booking Request</div>
             <div class="muted tiny" style="margin-bottom:10px;">${spot.address} (${spot.duration} hrs)</div>
-            
             <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; border:1px solid ${scoreColor}55; background:${scoreColor}11; margin-bottom:12px;">
                 <span style="font-size:14px; font-weight:900; color:${scoreColor}; font-family:var(--mono);">${spot.pendingParkerScore}</span>
                 <span style="font-size:10px; color:var(--muted); text-transform:uppercase;">Trust Score</span>
             </div>
-
             <div style="display:flex; gap:8px;">
                 <button class="btn btnPrimary btnGreen" style="flex:1; padding:8px 0;" onclick="window.apiApprove('${spot.id}', 'accept')">Accept</button>
                 <button class="btn btnDanger" style="flex:1; padding:8px 0;" onclick="window.apiApprove('${spot.id}', 'decline')">Decline</button>
             </div>
-        </div>
-        `;
+        </div>`;
     });
     container.innerHTML = html;
 }
@@ -362,7 +362,6 @@ window.apiApprove = async (spotId, action) => {
     }
 };
 
-// ─── Polling ─────────────────────────────────────
 async function poll() {
     try {
         const [statusRes, spotsRes] = await Promise.all([
@@ -372,7 +371,6 @@ async function poll() {
         sysReady = statusRes.ready;
         updateSystemPill();
 
-        // Render Owner Approval Toasts
         if (role === 'owner') {
             const pendingSpots = spotsRes.filter(
                 (s) => s.status === 'PENDING_APPROVAL',
@@ -383,17 +381,14 @@ async function poll() {
             if (alertBox) alertBox.innerHTML = '';
         }
 
-        // Update Top Bar Reputation Badge (Visible to Parker)
         const nftBadge = $('userNftBadge');
         if (nftBadge && statusRes.profiles) {
             if (role === 'parker') {
                 const score = statusRes.profiles.parker.trustScore;
-                let color = '#ff6b6b'; // Poor
-                if (score >= 750)
-                    color = '#4dffb4'; // Excellent
-                else if (score >= 650)
-                    color = '#6ae4ff'; // Good
-                else if (score >= 550) color = '#ffb84d'; // Fair
+                let color = '#ff6b6b';
+                if (score >= 750) color = '#4dffb4';
+                else if (score >= 650) color = '#6ae4ff';
+                else if (score >= 550) color = '#ffb84d';
 
                 nftBadge.style.display = '';
                 nftBadge.innerHTML = `<span class="nftIcon">🌟</span> <span style="color:${color}; font-family:var(--mono);">${score}</span> <span style="margin-left:4px; font-size:10px; font-weight:600; color:var(--muted)">TRUST SCORE</span>`;
@@ -419,17 +414,14 @@ async function poll() {
 }
 
 function startPolling() {
-    console.log(`[SYSTEM] Starting 3.0s Background Poller...`);
     poll();
     pollTimer = setInterval(poll, POLL_MS);
 }
 
-// ─── Sheet ───────────────────────────────────────
 function openSheet() {
     sheet.classList.add('open');
     sheet.setAttribute('aria-hidden', 'false');
 }
-
 function closeSheet() {
     sheet.classList.remove('open');
     sheet.setAttribute('aria-hidden', 'true');
@@ -456,19 +448,16 @@ function updateSheet() {
         return;
     }
 
-    // Header
     sheetTitle.textContent = spot.address;
     sheetSubtitle.textContent = `Spot ${spot.id.replace('spot_', '#')} \u00b7 ${statusLabel(spot.status)}`;
     statusBadge.textContent = statusLabel(spot.status);
     statusBadge.className = `statusBadge status-${spot.status}`;
     sheetMeta.style.display = '';
 
-    // Photo
     spotPhoto.style.background = `linear-gradient(135deg, ${statusGrad(spot.status)})`;
     spotPhotoIcon.textContent = statusIcon(spot.status);
     spotPhotoBadge.textContent = spot.status;
 
-    // Info cards
     rateValue.textContent = `${spot.price} XRP/hr`;
     depositValue.textContent = `${spot.price * 3} XRP`;
     durationValue.textContent = spot.duration
@@ -478,7 +467,6 @@ function updateSheet() {
         ? `${spot.minutesElapsed} mins`
         : '\u2014';
 
-    // Dynamic UI injection
     renderDynamicActions(spot);
 }
 
@@ -489,93 +477,39 @@ function renderDynamicActions(spot) {
     let html = '';
     const isSafe = spot.status === 'RESOLVED_SAFE';
 
-    // Generate XRPL Explorer Links dynamically
-    let txLinks = '';
-    if (spot.lastTrickleHash || spot.escrowHash) {
-        txLinks = `<div class="txLinksRow">`;
-        if (spot.lastTrickleHash) {
-            txLinks += `<a href="https://testnet.xrpl.org/transactions/${spot.lastTrickleHash}" target="_blank" class="txLink">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              Latest Stream TX
-          </a>`;
-        }
-        if (spot.escrowHash) {
-            txLinks += `<a href="https://testnet.xrpl.org/transactions/${spot.escrowHash}" target="_blank" class="txLink danger">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              Escrow Settlement TX
-          </a>`;
-        }
-        txLinks += `</div>`;
-    }
+    // Use the global function to generate the transparency log for the bottom sheet
+    const txLinks = generateActivityLogHTML(spot, isSafe);
 
-    // 1. RESOLVED STATE (ALL ROLES)
     if (spot.status.startsWith('RESOLVED')) {
         html = `
       <div class="resolutionBanner ${isSafe ? 'safe' : 'penalty'}">
         <div class="resolutionIcon">${isSafe ? '✅' : '🔴'}</div>
         <div>${isSafe ? 'Resolved — Collateral Returned' : 'Resolved — Collateral Slashed'}</div>
       </div>
-      ${txLinks}
-    `;
-        // NFT Celebration / Burn Overlays for Parker
+      ${txLinks}`;
+
         if (role === 'parker') {
             if (spot.nftMinted) {
-                html += `
-            <div class="nftCallout">
-                <div style="font-size: 26px; margin-bottom: 5px;">🌟</div>
-                <div style="color: #ffd700; font-weight: 900; margin-bottom: 4px; font-size: 14px;">XLS-20 NFT Minted!</div>
-                <div class="muted tiny">You earned the "Verified Parker" Soulbound Token for a flawless checkout.</div>
-            </div>`;
+                html += `<div class="nftCallout"><div style="font-size: 26px; margin-bottom: 5px;">🌟</div><div style="color: #ffd700; font-weight: 900; margin-bottom: 4px; font-size: 14px;">XLS-20 NFT Minted!</div><div class="muted tiny">You earned the "Verified Parker" Soulbound Token for a flawless checkout.</div></div>`;
             }
             if (spot.nftBurned) {
-                html += `
-            <div class="nftCallout" style="border-color: var(--danger); background: rgba(255,107,107,0.05); animation: none;">
-                <div style="font-size: 26px; margin-bottom: 5px;">🔥</div>
-                <div style="color: var(--danger); font-weight: 900; margin-bottom: 4px; font-size: 14px;">Reputation Burned</div>
-                <div class="muted tiny">Your Verified token was destroyed due to an overstay penalty.</div>
-            </div>`;
+                html += `<div class="nftCallout" style="border-color: var(--danger); background: rgba(255,107,107,0.05); animation: none;"><div style="font-size: 26px; margin-bottom: 5px;">🔥</div><div style="color: var(--danger); font-weight: 900; margin-bottom: 4px; font-size: 14px;">Reputation Burned</div><div class="muted tiny">Your Verified token was destroyed due to an overstay penalty.</div></div>`;
             }
         }
         container.innerHTML = html;
         return;
     }
 
-    // 2. ROLE: PARKER
     if (role === 'parker') {
         if (spot.status === 'AVAILABLE') {
-            html = `
-        <div class="callout">
-          <div class="calloutTitle">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-            XRPL time-based escrow
-          </div>
-          <div class="muted tiny" style="line-height:1.5; margin-bottom:10px;">
-            Your payment locks in an on-chain escrow. Funds trickle to the owner every hour. Collateral (3× rate) is held and returned on safe checkout.
-          </div>
-        </div>
-        <button class="btnPrimary" id="injectBookBtn" ${!sysReady ? 'disabled' : ''}>
-          ${!sysReady ? 'Backend Offline — Cannot Book' : 'Book this spot'}
-        </button>
-      `;
+            html = `<div class="callout"><div class="calloutTitle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>XRPL time-based escrow</div><div class="muted tiny" style="line-height:1.5; margin-bottom:10px;">Your payment locks in an on-chain escrow. Funds trickle to the owner every hour. Collateral (3× rate) is held and returned on safe checkout.</div></div><button class="btnPrimary" id="injectBookBtn" ${!sysReady ? 'disabled' : ''}>${!sysReady ? 'Backend Offline — Cannot Book' : 'Book this spot'}</button>`;
         } else if (spot.status === 'PENDING_APPROVAL') {
-            html = `
-        <div class="callout" style="border-color:var(--warn); text-align:center;">
-            <p style="color:var(--warn); font-weight:900; margin-bottom:5px; font-size: 14px;">⏳ Pending Approval</p>
-            <p class="muted tiny">The owner is currently reviewing your profile and Trust Score.</p>
-        </div>`;
+            html = `<div class="callout" style="border-color:var(--warn); text-align:center;"><p style="color:var(--warn); font-weight:900; margin-bottom:5px; font-size: 14px;">⏳ Pending Approval</p><p class="muted tiny">The owner is currently reviewing your profile and Trust Score.</p></div>`;
         } else if (spot.status === 'BOOKED') {
-            // NEW: Render a disabled button with a throbber if XRPL is processing
             if (isStartingParking) {
-                html = `
-                <button class="btnPrimary btnGreen" disabled style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                    <div class="loadingSpinner" style="width: 14px; height: 14px; border-width: 2px; margin: 0; animation: spin 0.8s linear infinite;"></div>
-                    Locking on Ledger...
-                </button>`;
+                html = `<button class="btnPrimary btnGreen" disabled style="display: flex; justify-content: center; align-items: center; gap: 8px;"><div class="loadingSpinner" style="width: 14px; height: 14px; border-width: 2px; margin: 0; animation: spin 0.8s linear infinite;"></div>Locking on Ledger...</button>`;
             } else {
-                html = `
-                <button class="btnPrimary btnGreen" id="injectArriveBtn">
-                  📍 I Have Arrived — Lock Funds
-                </button>`;
+                html = `<button class="btnPrimary btnGreen" id="injectArriveBtn">📍 I Have Arrived — Lock Funds</button>`;
             }
         } else if (spot.status === 'ACTIVE') {
             html = `<div class="callout muted tiny" style="text-align:center;">Session is Active. Tap your active booking card floating below to end the session.</div> ${txLinks}`;
@@ -583,20 +517,10 @@ function renderDynamicActions(spot) {
             if (spot.votes?.parker) {
                 html = `<div class="voteBanner">You voted: ${spot.votes.parker.toUpperCase()}. Awaiting consensus.</div> ${txLinks}`;
             } else {
-                html = `
-             <div class="voteBanner">Session expired. Are you still parked?</div>
-             <div class="voteButtons">
-               <button class="voteBtn safe" onclick="window.handleVote('safe')">No (I Left)</button>
-               <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Still Here)</button>
-             </div>
-             ${txLinks}
-           `;
+                html = `<div class="voteBanner">Session expired. Are you still parked?</div><div class="voteButtons"><button class="voteBtn safe" onclick="window.handleVote('safe')">No (I Left)</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Still Here)</button></div>${txLinks}`;
             }
         }
-    }
-
-    // 3. ROLE: OWNER
-    else if (role === 'owner') {
+    } else if (role === 'owner') {
         let scoreColor = '#ff6b6b';
         if (spot.parkerScore >= 750) scoreColor = '#4dffb4';
         else if (spot.parkerScore >= 650) scoreColor = '#6ae4ff';
@@ -604,23 +528,13 @@ function renderDynamicActions(spot) {
 
         const trustBadge =
             spot.status !== 'AVAILABLE'
-                ? `
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; border:1px solid ${scoreColor}55; background:${scoreColor}11; margin-top:6px;">
-            <span style="font-size:12px; font-weight:900; color:${scoreColor}; font-family:var(--mono);">${spot.parkerScore}</span>
-            <span style="font-size:9px; color:var(--muted); text-transform:uppercase;">Parker Score</span>
-            ${spot.parkerHasNFT ? '<span title="Verified NFT Holder">🌟</span>' : ''}
-        </div>
-    `
+                ? `<div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; border:1px solid ${scoreColor}55; background:${scoreColor}11; margin-top:6px;"><span style="font-size:12px; font-weight:900; color:${scoreColor}; font-family:var(--mono);">${spot.parkerScore}</span><span style="font-size:9px; color:var(--muted); text-transform:uppercase;">Parker Score</span>${spot.parkerHasNFT ? '<span title="Verified NFT Holder">🌟</span>' : ''}</div>`
                 : '';
 
         if (spot.status === 'AVAILABLE') {
             html = `<div class="callout muted tiny" style="text-align:center;">Spot is available. Waiting for a parker to book.</div>`;
         } else if (spot.status === 'PENDING_APPROVAL') {
-            html = `
-        <div class="callout" style="border-color:var(--accent); text-align:center;">
-            <p style="color:var(--accent); font-weight:900; margin-bottom:5px; font-size: 14px;">🔔 Action Required</p>
-            <p class="muted tiny">A Parker wants to book this spot. Use the popup in the top right to accept or decline based on their Trust Score.</p>
-        </div>`;
+            html = `<div class="callout" style="border-color:var(--accent); text-align:center;"><p style="color:var(--accent); font-weight:900; margin-bottom:5px; font-size: 14px;">🔔 Action Required</p><p class="muted tiny">A Parker wants to book this spot. Use the popup in the top right to accept or decline based on their Trust Score.</p></div>`;
         } else if (spot.status === 'BOOKED') {
             html = `<div class="callout muted tiny" style="text-align:center; padding-bottom:8px;">Spot booked. Waiting for parker to arrive and lock funds.<br>${trustBadge}</div>`;
         } else if (spot.status === 'ACTIVE') {
@@ -629,49 +543,14 @@ function renderDynamicActions(spot) {
             if (spot.votes?.owner) {
                 html = `<div class="voteBanner">You voted: ${spot.votes.owner.toUpperCase()}. Awaiting consensus.</div> ${txLinks}`;
             } else {
-                html = `
-             <div class="voteBanner">Session expired. Is the car still parked?</div>
-             <div class="voteButtons">
-               <button class="voteBtn safe" onclick="window.handleVote('safe')">No (Safe Checkout)</button>
-               <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Slash Collateral)</button>
-             </div>
-             ${txLinks}
-           `;
+                html = `<div class="voteBanner">Session expired. Is the car still parked?</div><div class="voteButtons"><button class="voteBtn safe" onclick="window.handleVote('safe')">No (Safe Checkout)</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Slash Collateral)</button></div>${txLinks}`;
             }
         } else if (spot.status === 'CONFLICT') {
-            html = `
-         <div class="conflictBanner">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-           Status Disputed — Awaiting Admin Resolution
-         </div>
-         ${txLinks}
-       `;
+            html = `<div class="conflictBanner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>Status Disputed — Awaiting Admin Resolution</div>${txLinks}`;
         }
-    }
-
-    // 4. ROLE: ADMIN
-    else if (role === 'admin') {
+    } else if (role === 'admin') {
         if (spot.status === 'CONFLICT') {
-            html = `
-         <div class="adminVoteCard">
-            <div class="adminVoteTitle">Admin Tie-Breaker Required</div>
-            <div class="adminVoteInfo" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
-              <div class="adminVoteRow" style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid var(--border);">
-                <span class="voteLabel" style="font-size:12px; font-weight:700;">Parker voted</span>
-                <span class="voteValue ${spot.votes?.parker}" style="font-size:11px; font-weight:800;">${(spot.votes?.parker || '—').toUpperCase()}</span>
-              </div>
-              <div class="adminVoteRow" style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid var(--border);">
-                <span class="voteLabel" style="font-size:12px; font-weight:700;">Owner voted</span>
-                <span class="voteValue ${spot.votes?.owner}" style="font-size:11px; font-weight:800;">${(spot.votes?.owner || '—').toUpperCase()}</span>
-              </div>
-            </div>
-            <div class="voteButtons">
-              <button class="voteBtn safe" onclick="window.handleVote('safe')">Rule Safe</button>
-              <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Rule Penalty</button>
-            </div>
-         </div>
-         ${txLinks}
-       `;
+            html = `<div class="adminVoteCard"><div class="adminVoteTitle">Admin Tie-Breaker Required</div><div class="adminVoteInfo" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"><div class="adminVoteRow" style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid var(--border);"><span class="voteLabel" style="font-size:12px; font-weight:700;">Parker voted</span><span class="voteValue ${spot.votes?.parker}" style="font-size:11px; font-weight:800;">${(spot.votes?.parker || '—').toUpperCase()}</span></div><div class="adminVoteRow" style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid var(--border);"><span class="voteLabel" style="font-size:12px; font-weight:700;">Owner voted</span><span class="voteValue ${spot.votes?.owner}" style="font-size:11px; font-weight:800;">${(spot.votes?.owner || '—').toUpperCase()}</span></div></div><div class="voteButtons"><button class="voteBtn safe" onclick="window.handleVote('safe')">Rule Safe</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Rule Penalty</button></div></div>${txLinks}`;
         } else {
             html = `<div class="callout muted tiny" style="text-align:center;">No admin intervention required. Current status: ${spot.status}</div> ${txLinks}`;
         }
@@ -679,29 +558,18 @@ function renderDynamicActions(spot) {
 
     container.innerHTML = html;
 
-    // Re-attach event listeners for dynamically injected buttons
     const bBtn = $('injectBookBtn');
-    if (bBtn)
-        bBtn.addEventListener('click', () => {
-            console.log(`[UI EVENT] Clicked "Book this spot" on ${spot.id}`);
-            openBookingModal();
-        });
-
+    if (bBtn) bBtn.addEventListener('click', openBookingModal);
     const aBtn = $('injectArriveBtn');
     if (aBtn)
         aBtn.addEventListener('click', () => {
-            console.log(`[UI EVENT] Clicked "I Have Arrived" on ${spot.id}`);
             myId = spot.id;
             startParking(false);
         });
 }
 
-// ─── Voting ──────────────────────────────────────
 async function handleVote(vote) {
     const spotId = selId || myId;
-    console.log(
-        `[UI EVENT] Casting Vote: Role=${role} Vote=${vote} Spot=${spotId}`,
-    );
     if (!spotId || !role || voting) return;
     voting = true;
 
@@ -709,7 +577,6 @@ async function handleVote(vote) {
         b.disabled = true;
         b.textContent = 'Voting...';
     });
-
     try {
         await api('POST', '/vote', { spotId, voter: role, vote });
         showToast(`Vote recorded: ${vote.toUpperCase()}`);
@@ -724,13 +591,11 @@ async function handleVote(vote) {
     voting = false;
 }
 
-// ─── Active Booking Card ─────────────────────────
 function updateActiveCard() {
     if (!myId) {
         activeBookingCard.style.display = 'none';
         return;
     }
-
     const spot = spots.find((s) => s.id === myId);
     if (
         !spot ||
@@ -759,6 +624,12 @@ function updateActiveCard() {
     conflictSec.style.display = 'none';
     resSec.style.display = 'none';
 
+    // NEW: Inject Ledger Log directly into the Parker's floating card
+    if (activeLedgerLog) {
+        const isSafe = spot.status === 'RESOLVED_SAFE';
+        activeLedgerLog.innerHTML = generateActivityLogHTML(spot, isSafe);
+    }
+
     switch (spot.status) {
         case 'BOOKED':
             activeSubText.textContent = 'Booked \u2014 head to the spot';
@@ -786,13 +657,10 @@ function updateActiveCard() {
 
             trickleRow.style.display = '';
             trickleFill.style.width = `${(pct * 100).toFixed(1)}%`;
-
-            if (role === 'parker') {
-                trickleLabel.textContent = `${released.toFixed(2)} / ${total.toFixed(2)} XRP to claim`;
-            } else {
-                trickleLabel.textContent = `${released.toFixed(2)} / ${total.toFixed(2)} XRP released`;
-            }
-
+            trickleLabel.textContent =
+                role === 'parker'
+                    ? `${released.toFixed(2)} / ${total.toFixed(2)} XRP to claim`
+                    : `${released.toFixed(2)} / ${total.toFixed(2)} XRP released`;
             trickleRate.textContent = `${spot.price} XRP/hr`;
 
             actions.style.display = '';
@@ -811,30 +679,23 @@ function updateActiveCard() {
             const total = spot.price * spot.duration;
             trickleRow.style.display = '';
             trickleFill.style.width = '100%';
-
-            if (role === 'parker') {
-                trickleLabel.textContent = `${total.toFixed(2)} / ${total.toFixed(2)} XRP to claim`;
-            } else {
-                trickleLabel.textContent = `${total.toFixed(2)} / ${total.toFixed(2)} XRP released`;
-            }
-
+            trickleLabel.textContent =
+                role === 'parker'
+                    ? `${total.toFixed(2)} / ${total.toFixed(2)} XRP to claim`
+                    : `${total.toFixed(2)} / ${total.toFixed(2)} XRP released`;
             trickleRate.textContent = '';
             actions.style.display = 'none';
 
             if ((role === 'parker' || role === 'owner') && !spot.votes[role]) {
                 voteSec.style.display = '';
-                const banner = $('activeVoteBanner');
-                const buttons = $('activeVoteButtons');
-                banner.textContent =
+                $('activeVoteBanner').textContent =
                     role === 'parker'
                         ? 'Are you still parked?'
                         : 'Is the car still parked?';
-                buttons.innerHTML =
+                $('activeVoteButtons').innerHTML =
                     role === 'parker'
-                        ? `<button class="voteBtn safe" onclick="window.handleVote('safe')">No (I Left)</button>
-             <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Still Here)</button>`
-                        : `<button class="voteBtn safe" onclick="window.handleVote('safe')">No (Safe Checkout)</button>
-             <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Slash Collateral)</button>`;
+                        ? `<button class="voteBtn safe" onclick="window.handleVote('safe')">No (I Left)</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Still Here)</button>`
+                        : `<button class="voteBtn safe" onclick="window.handleVote('safe')">No (Safe Checkout)</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Yes (Slash Collateral)</button>`;
             } else if (spot.votes[role]) {
                 voteSec.style.display = '';
                 $('activeVoteBanner').textContent =
@@ -858,10 +719,8 @@ function updateActiveCard() {
                 voteSec.style.display = '';
                 $('activeVoteBanner').textContent =
                     `Parker: ${(spot.votes.parker || '\u2014').toUpperCase()} \u00b7 Owner: ${(spot.votes.owner || '\u2014').toUpperCase()}`;
-                const btns = $('activeVoteButtons');
-                btns.innerHTML = `
-          <button class="voteBtn safe" onclick="window.handleVote('safe')">Rule Safe</button>
-          <button class="voteBtn penalty" onclick="window.handleVote('penalty')">Rule Penalty</button>`;
+                $('activeVoteButtons').innerHTML =
+                    `<button class="voteBtn safe" onclick="window.handleVote('safe')">Rule Safe</button><button class="voteBtn penalty" onclick="window.handleVote('penalty')">Rule Penalty</button>`;
             } else {
                 conflictSec.style.display = '';
             }
@@ -883,9 +742,7 @@ function updateActiveCard() {
             resSec.style.display = '';
             const banner = $('activeResolutionBanner');
             banner.className = `resolutionBanner ${isSafe ? 'safe' : 'penalty'}`;
-            banner.innerHTML = `
-        <div class="resolutionIcon">${isSafe ? '\u2705' : '\ud83d\udd34'}</div>
-        <div>${isSafe ? 'Resolved \u2014 Collateral Returned' : 'Resolved \u2014 Collateral Slashed'}</div>`;
+            banner.innerHTML = `<div class="resolutionIcon">${isSafe ? '\u2705' : '\ud83d\udd34'}</div><div>${isSafe ? 'Resolved \u2014 Collateral Returned' : 'Resolved \u2014 Collateral Slashed'}</div>`;
             break;
         }
     }
@@ -902,12 +759,9 @@ function updateLifecycle(stage) {
         if (i < idx) el.classList.add('completed');
         if (i === idx) el.classList.add('active');
     });
-    lineEls.forEach((el, i) => {
-        el.classList.toggle('completed', i < idx);
-    });
+    lineEls.forEach((el, i) => el.classList.toggle('completed', i < idx));
 }
 
-// ─── Booking Modal ───────────────────────────────
 function openBookingModal() {
     const spot = spots.find((s) => s.id === selId);
     if (!spot) return;
@@ -933,7 +787,6 @@ function openBookingModal() {
     modalView.style.display = '';
     successView.style.display = 'none';
     loadingView.style.display = 'none';
-
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modalOpen');
@@ -960,7 +813,6 @@ function updateBookingCost() {
 
     hoursDownBtn.disabled = bookHrs <= 1;
     hoursUpBtn.disabled = bookHrs >= 8;
-
     quickDurations
         .querySelectorAll('.quickBtn')
         .forEach((b) =>
@@ -968,76 +820,69 @@ function updateBookingCost() {
         );
 }
 
-// MODIFIED: Skip success modal, show wait toast
 async function confirmBooking() {
     const spot = spots.find((s) => s.id === selId);
     if (!spot) return;
-    console.log(
-        `[UI EVENT] Requesting Off-Chain Booking for ${spot.id} for ${bookHrs} hrs`,
-    );
 
     modalConfirmBtn.disabled = true;
     modalConfirmBtn.textContent = 'Sending Request...';
-
     try {
         const result = await api('POST', '/prepare', {
             spotId: spot.id,
             duration: bookHrs,
         });
-
         if (result.success) {
             myId = spot.id;
             closeModal();
             showToast(
                 'Request sent! Waiting for owner to review your Trust Score.',
             );
-            await poll(); // Instantly show PENDING_APPROVAL in the sheet UI
+            await poll();
         }
     } catch (e) {
         showToast('Booking failed: ' + e.message, 'danger');
     }
-
     modalConfirmBtn.disabled = false;
-    modalConfirmBtn.innerHTML = `
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg> Confirm & Book`;
+    modalConfirmBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Confirm & Book`;
 }
 
 async function startParking(fromModal) {
     if (!myId) return;
-    console.log(`[UI EVENT] Triggering On-Chain Logic for ${myId}`);
 
-    // Lock the UI against background polling
     isStartingParking = true;
-    if (selId === myId) updateSheet(); // Instantly inject the throbber
+    if (selId === myId) updateSheet();
 
-    const toggle = document.getElementById('stablecoinToggle');
-    const useStablecoin = toggle ? toggle.checked : false;
+    // Retrieve selected currency from radio buttons
+    const selectedCurrencyEl = document.querySelector(
+        'input[name="paymentAsset"]:checked',
+    );
+    const selectedCurrency = selectedCurrencyEl
+        ? selectedCurrencyEl.value
+        : 'XRP';
 
     if (fromModal) {
         modalView.style.display = 'none';
         successView.style.display = 'none';
         loadingView.style.display = '';
         loadingTitle.textContent = 'Processing on XRPL\u2026';
-        loadingSub.textContent = useStablecoin
-            ? 'Swapping RLUSD via AMM & locking escrow...'
-            : 'Creating payment channel & locking escrow on-chain';
+        loadingSub.textContent =
+            selectedCurrency !== 'XRP'
+                ? `Swapping ${selectedCurrency} via AMM & locking escrow...`
+                : 'Creating payment channel & locking escrow on-chain';
     }
 
     try {
         const result = await api('POST', '/start', {
             spotId: myId,
-            useStablecoin,
+            currency: selectedCurrency,
         });
-
         if (result.success) {
-            if (result.hashes.swapHash) {
-                showToast('RLUSD Swapped & Funds Locked! Streaming actively.');
-            } else {
-                showToast('Funds Locked! XRP streaming actively.');
-            }
-            isStartingParking = false; // Release the lock
+            showToast(
+                result.hashes.swapHash
+                    ? `${selectedCurrency} Swapped & Funds Locked! Streaming actively.`
+                    : 'Funds Locked! XRP streaming actively.',
+            );
+            isStartingParking = false;
             closeModal();
             closeSheet();
             await poll();
@@ -1045,9 +890,8 @@ async function startParking(fromModal) {
             throw new Error(result.error || 'Failed to start');
         }
     } catch (e) {
-        isStartingParking = false; // Release the lock on failure
-        if (selId === myId) updateSheet(); // Restore the normal button
-
+        isStartingParking = false;
+        if (selId === myId) updateSheet();
         showToast('Start failed: ' + e.message, 'danger');
         if (fromModal) {
             loadingView.style.display = 'none';
@@ -1056,13 +900,11 @@ async function startParking(fromModal) {
     }
 }
 
-// ─── List Modal ──────────────────────────────────
-const ownerRateInput = $('ownerRate');
-const ownerStartInput = $('ownerStart');
-const ownerEndInput = $('ownerEnd');
-const earningsValue = $('earningsValue');
-
 function updateEarningsPreview() {
+    const ownerRateInput = $('ownerRate');
+    const ownerStartInput = $('ownerStart');
+    const ownerEndInput = $('ownerEnd');
+    const earningsValue = $('earningsValue');
     if (!ownerRateInput || !ownerStartInput || !ownerEndInput || !earningsValue)
         return;
     const rate = parseFloat(ownerRateInput.value) || 0;
@@ -1079,6 +921,8 @@ function updateEarningsPreview() {
 }
 
 function openListModal() {
+    const ownerStartInput = $('ownerStart');
+    const ownerEndInput = $('ownerEnd');
     if (ownerStartInput && ownerEndInput) {
         const now = new Date();
         const end = new Date(now.getTime() + 8 * 3600000);
@@ -1089,7 +933,6 @@ function openListModal() {
         ownerEndInput.value = format(end);
         updateEarningsPreview();
     }
-
     listModal.classList.add('open');
     listModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modalOpen');
@@ -1101,14 +944,11 @@ function closeListModal() {
     document.body.classList.remove('modalOpen');
 }
 
-// ─── Event Wiring ────────────────────────────────
 function setupEvents() {
-    // Role selector
     roleButtons.addEventListener('click', (e) => {
         const btn = e.target.closest('.roleBtn');
         if (!btn) return;
         const r = btn.dataset.role;
-
         if (r === 'admin') {
             adminPassGroup.style.display = '';
             adminPassInput.value = '';
@@ -1120,22 +960,22 @@ function setupEvents() {
         }
     });
 
-    adminPassSubmit.addEventListener('click', () => {
-        if (adminPassInput.value === 'admin') {
-            setRole('admin');
-        } else {
-            adminPassError.style.display = '';
-        }
-    });
+    if (closeActiveCardBtn) {
+        closeActiveCardBtn.addEventListener('click', () => {
+            myId = null; // Clear the tracked spot
+            updateActiveCard(); // Instantly hide the card
+        });
+    }
 
+    adminPassSubmit.addEventListener('click', () => {
+        if (adminPassInput.value === 'admin') setRole('admin');
+        else adminPassError.style.display = '';
+    });
     adminPassInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') adminPassSubmit.click();
     });
-
-    // Role badge → re-open selector
     roleBadge.addEventListener('click', openRoleSelector);
 
-    // Sheet
     closeSheetBtn.addEventListener('click', closeSheet);
     sheetHandle.addEventListener('click', closeSheet);
 
@@ -1155,20 +995,15 @@ function setupEvents() {
         { passive: true },
     );
 
-    // Modal
     $('modalCloseBtn').addEventListener('click', closeModal);
     $('modalCancelBtn').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
 
-    // Confirm booking
     modalConfirmBtn.addEventListener('click', confirmBooking);
-
-    // Start parking from modal success
     successStartBtn.addEventListener('click', () => startParking(true));
 
-    // Hours stepper
     hoursDownBtn.addEventListener('click', () => {
         if (bookHrs > 1) {
             bookHrs--;
@@ -1182,31 +1017,30 @@ function setupEvents() {
         }
     });
 
-    // End booking
     endBookingBtn.addEventListener('click', () => {
-        console.log(`[UI EVENT] End Session clicked by ${role}`);
         if (!myId || !role) return;
         handleVote('safe');
     });
 
-    // Directions
     directionsBtn.addEventListener('click', () => {
         const spot = spots.find((s) => s.id === selId);
-        if (spot) {
+        if (spot)
             window.open(
                 `https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}&travelmode=walking`,
                 '_blank',
             );
-        }
     });
 
-    // List spot
     listSpotBtn.addEventListener('click', openListModal);
     listModalCloseBtn.addEventListener('click', closeListModal);
     listModalCancelBtn.addEventListener('click', closeListModal);
     listModal.addEventListener('click', (e) => {
         if (e.target === listModal) closeListModal();
     });
+
+    const ownerRateInput = $('ownerRate');
+    const ownerStartInput = $('ownerStart');
+    const ownerEndInput = $('ownerEnd');
     if (ownerRateInput)
         ownerRateInput.addEventListener('input', updateEarningsPreview);
     if (ownerStartInput)
@@ -1222,13 +1056,10 @@ function setupEvents() {
         });
     }
 
-    // Search
     searchInput.addEventListener('input', () => {
         renderMarkers();
         if (sheet.classList.contains('open')) closeSheet();
     });
-
-    // Filter chips
     filterChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.filterChip');
         if (!chip) return;
@@ -1244,20 +1075,6 @@ function setupEvents() {
         renderMarkers();
         if (sheet.classList.contains('open')) closeSheet();
     });
-
-    // Stablecoin Toggle Animation
-    const sToggle = $('stablecoinToggle');
-    const sKnob = $('toggleKnob');
-    if (sToggle && sKnob) {
-        sToggle.addEventListener('change', (e) => {
-            sKnob.style.transform = e.target.checked
-                ? 'translateX(20px)'
-                : 'translateX(0)';
-            sKnob.style.backgroundColor = e.target.checked
-                ? 'var(--green)'
-                : 'var(--accent)';
-        });
-    }
 }
 
 function init() {

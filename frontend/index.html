@@ -31,9 +31,7 @@
                 <div class="card searchCard">
                     <div class="brandRow">
                         <div class="brandLeft">
-                            <div class="brand">
-                                XRPark
-                            </div>
+                            <div class="brand">XRPark</div>
                         </div>
                         <div class="brandActions">
                             <button
@@ -137,7 +135,29 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="activeTimer" id="activeTimer">--:--:--</div>
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="activeTimer" id="activeTimer">
+                                --:--:--
+                            </div>
+                            <button
+                                class="iconBtn"
+                                id="closeActiveCardBtn"
+                                aria-label="Close"
+                                style="
+                                    width: 28px;
+                                    height: 28px;
+                                    font-size: 12px;
+                                "
+                            >
+                                ✕
+                            </button>
+                        </div>
                     </div>
 
                     <div class="escrowLifecycle" id="escrowLifecycle">
@@ -183,6 +203,8 @@
                             ></div>
                         </div>
                     </div>
+
+                    <div id="activeLedgerLog"></div>
 
                     <div id="activeVoteSection" style="display: none">
                         <div class="divider"></div>
@@ -327,7 +349,6 @@
                             margin-top: 10px;
                         "
                     ></div>
-
                     <div style="height: 14px"></div>
                 </div>
             </div>
@@ -373,8 +394,8 @@
 
                         <div class="costBreakdown">
                             <div class="costRow">
-                                <span class="muted">Parking cost</span>
-                                <span id="costParking">—</span>
+                                <span class="muted">Parking cost</span
+                                ><span id="costParking">—</span>
                             </div>
                             <div class="costRow">
                                 <span class="muted"
@@ -382,12 +403,11 @@
                                     <span class="tiny"
                                         >(3× rate, refundable)</span
                                     ></span
-                                >
-                                <span id="costDeposit">—</span>
+                                ><span id="costDeposit">—</span>
                             </div>
                             <div class="costRow total">
-                                <span>Total locked in escrow</span>
-                                <span id="costTotal" class="accent">—</span>
+                                <span>Total locked in escrow</span
+                                ><span id="costTotal" class="accent">—</span>
                             </div>
                         </div>
 
@@ -395,9 +415,6 @@
 
                         <div
                             style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: space-between;
                                 margin: 12px 0;
                                 background: rgba(106, 228, 255, 0.05);
                                 padding: 12px;
@@ -405,63 +422,36 @@
                                 border: 1px solid var(--border);
                             "
                         >
-                            <div>
-                                <div
-                                    style="font-weight: 800; color: var(--text)"
-                                >
-                                    Pay with RLUSD Stablecoin
-                                </div>
-                                <div class="muted tiny">
-                                    Auto-swaps to XRP via native AMM DEX
-                                </div>
+                            <div style="font-weight: 800; color: var(--text)">
+                                Select Payment Asset
                             </div>
-                            <label
-                                style="
-                                    position: relative;
-                                    display: inline-block;
-                                    width: 44px;
-                                    height: 24px;
-                                "
-                            >
-                                <input
-                                    type="checkbox"
-                                    id="stablecoinToggle"
-                                    style="opacity: 0; width: 0; height: 0"
-                                />
-                                <span
-                                    style="
-                                        position: absolute;
-                                        cursor: pointer;
-                                        top: 0;
-                                        left: 0;
-                                        right: 0;
-                                        bottom: 0;
-                                        background-color: rgba(
-                                            255,
-                                            255,
-                                            255,
-                                            0.1
-                                        );
-                                        border-radius: 24px;
-                                        transition: 0.4s;
-                                    "
+                            <div class="muted tiny">
+                                Non-XRP assets auto-swap via AMM DEX
+                            </div>
+                            <div class="currencySelector">
+                                <label
+                                    ><input
+                                        type="radio"
+                                        name="paymentAsset"
+                                        value="XRP"
+                                        checked
+                                    /><span>XRP</span></label
                                 >
-                                    <span
-                                        id="toggleKnob"
-                                        style="
-                                            position: absolute;
-                                            content: '';
-                                            height: 18px;
-                                            width: 18px;
-                                            left: 3px;
-                                            bottom: 3px;
-                                            background-color: var(--accent);
-                                            border-radius: 50%;
-                                            transition: 0.2s;
-                                        "
-                                    ></span>
-                                </span>
-                            </label>
+                                <label
+                                    ><input
+                                        type="radio"
+                                        name="paymentAsset"
+                                        value="RLU"
+                                    /><span>RLUSD</span></label
+                                >
+                                <label
+                                    ><input
+                                        type="radio"
+                                        name="paymentAsset"
+                                        value="AUD"
+                                    /><span>AUDD</span></label
+                                >
+                            </div>
                         </div>
 
                         <div style="height: 12px"></div>
@@ -533,8 +523,8 @@
 
                         <div class="xrplBlock">
                             <div class="xrplBlockHeader">
-                                <span class="xrplTxType">PREPARED</span>
-                                <span class="networkBadge">Testnet</span>
+                                <span class="xrplTxType">PREPARED</span
+                                ><span class="networkBadge">Testnet</span>
                             </div>
                             <div class="xrplRows" id="successDetails"></div>
                         </div>
@@ -591,9 +581,7 @@
                             ✕
                         </button>
                     </div>
-
                     <div class="divider" style="margin: 10px 0"></div>
-
                     <div class="formScroll">
                         <div class="formGroup">
                             <label for="ownerTitle">Spot title</label>
@@ -604,7 +592,6 @@
                                 maxlength="60"
                             />
                         </div>
-
                         <div class="formGroup">
                             <label for="ownerAddress">Address</label>
                             <input
@@ -613,11 +600,10 @@
                                 placeholder="e.g. 15 High St, Kensington"
                             />
                         </div>
-
                         <div class="formRow">
                             <div class="formGroup">
-                                <label for="ownerRate">Rate (XRP / hr)</label>
-                                <input
+                                <label for="ownerRate">Rate (XRP / hr)</label
+                                ><input
                                     type="number"
                                     id="ownerRate"
                                     min="0.1"
@@ -637,20 +623,18 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="formRow">
                             <div class="formGroup">
                                 <label for="ownerOverstay"
                                     >Overstay penalty</label
-                                >
-                                <select id="ownerOverstay">
+                                ><select id="ownerOverstay">
                                     <option value="2">2× rate</option>
                                     <option value="3" selected>3× rate</option>
                                 </select>
                             </div>
                             <div class="formGroup">
-                                <label for="ownerDeposit">Deposit held</label>
-                                <select id="ownerDeposit">
+                                <label for="ownerDeposit">Deposit held</label
+                                ><select id="ownerDeposit">
                                     <option value="2">2× hourly rate</option>
                                     <option value="3" selected>
                                         3× hourly rate
@@ -658,18 +642,16 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="formRow">
                             <div class="formGroup">
-                                <label for="ownerStart">Available from</label>
-                                <input type="datetime-local" id="ownerStart" />
+                                <label for="ownerStart">Available from</label
+                                ><input type="datetime-local" id="ownerStart" />
                             </div>
                             <div class="formGroup">
-                                <label for="ownerEnd">Available until</label>
-                                <input type="datetime-local" id="ownerEnd" />
+                                <label for="ownerEnd">Available until</label
+                                ><input type="datetime-local" id="ownerEnd" />
                             </div>
                         </div>
-
                         <div class="formGroup">
                             <label for="ownerRules"
                                 >Rules
@@ -678,14 +660,12 @@
                                     style="text-transform: none"
                                     >(optional)</span
                                 ></label
-                            >
-                            <textarea
+                            ><textarea
                                 id="ownerRules"
                                 rows="3"
                                 placeholder="e.g. Leave by end time to avoid penalties."
                             ></textarea>
                         </div>
-
                         <div class="earningsPreview" style="margin-top: 5px">
                             <div class="earningsLabel">Estimated Potential</div>
                             <div class="earningsValue" id="earningsValue">
@@ -693,7 +673,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div style="height: 14px; flex-shrink: 0"></div>
                     <div class="modalActions" style="flex-shrink: 0">
                         <button class="btn" id="listModalCancelBtn">
@@ -719,7 +698,6 @@
                     <div class="roleSub muted">
                         Peer-to-peer parking powered by XRPL escrow
                     </div>
-
                     <div
                         class="roleDesc muted tiny"
                         style="margin-bottom: 16px; line-height: 1.5"
@@ -728,7 +706,6 @@
                         session outcomes. 2/3 agreement settles the escrow
                         on-chain.
                     </div>
-
                     <div class="roleButtons" id="roleButtons">
                         <button class="roleBtn" data-role="parker">
                             <span class="roleBtnIcon">🚗</span>
@@ -758,7 +735,6 @@
                             </div>
                         </button>
                     </div>
-
                     <div
                         class="adminPassGroup"
                         id="adminPassGroup"
@@ -766,8 +742,8 @@
                     >
                         <div style="height: 12px"></div>
                         <div class="formGroup">
-                            <label for="adminPassInput">Admin password</label>
-                            <input
+                            <label for="adminPassInput">Admin password</label
+                            ><input
                                 type="password"
                                 id="adminPassInput"
                                 placeholder="Enter admin password"
@@ -785,14 +761,12 @@
                             Incorrect password
                         </div>
                     </div>
-
                     <div class="roleFooter muted tiny">
                         Built for XRPL Hackathon 2026
                     </div>
                 </div>
             </div>
         </div>
-
         <script type="module" src="./app.js"></script>
     </body>
 </html>

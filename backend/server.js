@@ -9,9 +9,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// THE REPUTATION STATE
 let userProfiles = {
-    parker: { safeCheckouts: 0, hasNFT: false, trustScore: 600 }, // Baseline start
+    parker: { safeCheckouts: 0, hasNFT: false, trustScore: 600 },
 };
 
 let spots = [
@@ -47,7 +46,6 @@ let spots = [
         duration: 0,
         minutesElapsed: 0,
         votes: {},
-    
     },
     {
         id: 'unsw-004',
@@ -95,9 +93,9 @@ let spots = [
     },
     {
         id: 'unsw-026',
-        lat: -33.9108,
-        lng: 151.2355,
-        address: '42 Alison Rd, Randwick NSW',
+        lat: -33.9222,
+        lng: 151.2306,
+        address: '14 Willis Ln, Randwick NSW',
         price: 1.8,
         status: 'AVAILABLE',
         duration: 0,
@@ -118,8 +116,8 @@ let spots = [
 
     {
         id: 'unsw-029',
-        lat: -33.9120,
-        lng: 151.2430,
+        lat: -33.912,
+        lng: 151.243,
         address: '11 Perouse Rd, Randwick NSW',
         price: 2.0,
         status: 'AVAILABLE',
@@ -129,9 +127,9 @@ let spots = [
     },
     {
         id: 'unsw-030',
-        lat: -33.9258,
-        lng: 151.2305,
-        address: '22 Irvine St, Kingsford NSW',
+        lat: -33.9251,
+        lng: 151.2313,
+        address: '26 Wallace St, Kingsford NSW',
         price: 1.8,
         status: 'AVAILABLE',
         duration: 0,
@@ -140,7 +138,7 @@ let spots = [
     },
     {
         id: 'unsw-031',
-        lat: -33.9270,
+        lat: -33.927,
         lng: 151.2275,
         address: '35 Rainbow St, Kingsford NSW',
         price: 1.5,
@@ -164,7 +162,7 @@ let spots = [
     {
         id: 'unsw-034',
         lat: -33.9195,
-        lng: 151.2420,
+        lng: 151.242,
         address: '44 Bundock St, Randwick NSW',
         price: 1.0,
         status: 'AVAILABLE',
@@ -175,47 +173,28 @@ let spots = [
 ];
 
 console.log('🚀 Server Booting... Firing up XRPL...');
-// CHAIN PROMISES TO INIT AMM AFTER WALLETS
 xrplService.initLedger().then(() => {
     xrplService.setupStablecoinAndAMM();
 });
 
-// Daemon: Ticks every 10 seconds (Simulating 5 Minutes of real time for the demo)
 setInterval(async () => {
     for (let spot of spots) {
         if (spot.status === 'ACTIVE') {
             spot.minutesElapsed += 5;
-            console.log(
-                `\n[CRON] Spot ${spot.id} ticked to Minute ${spot.minutesElapsed}. Triggering 5-min claim...`,
-            );
-
             try {
                 spot.lastTrickleHash =
                     await xrplService.claimFractionalRate(spot);
-            } catch (e) {
-                console.error(
-                    `[CRON ERROR] Trickle failed on spot ${spot.id}:`,
-                    e.message,
-                );
-            }
-
-            // Duration is in hours, so multiply by 60 to compare with minutes
-            if (spot.minutesElapsed >= spot.duration * 60) {
-                console.log(
-                    `[CRON] ⏰ Spot ${spot.id} duration expired! Awaiting consensus votes.`,
-                );
+            } catch (e) {}
+            if (spot.minutesElapsed >= spot.duration * 60)
                 spot.status = 'EXPIRED';
-            }
         }
     }
 }, 2500);
 
-// Pass profile state to frontend
 app.get('/api/system/status', (req, res) =>
     res.json({ ready: xrplService.isReady(), profiles: userProfiles }),
 );
 
-// Inject NFT and Score status into spots
 app.get('/api/spots', (req, res) => {
     const enrichedSpots = spots.map((s) => ({
         ...s,
@@ -225,7 +204,6 @@ app.get('/api/spots', (req, res) => {
     res.json(enrichedSpots);
 });
 
-// MODIFIED: Put spot into PENDING_APPROVAL instead of BOOKED
 app.post('/api/prepare', (req, res) => {
     const { spotId, duration } = req.body;
     const spot = spots.find((s) => s.id === spotId);
@@ -238,87 +216,72 @@ app.post('/api/prepare', (req, res) => {
     spot.votes = { parker: null, owner: null, admin: null };
     spot.nftMinted = false;
     spot.nftBurned = false;
-
-    // Snapshot the Parker's score so the Owner can review it
     spot.pendingParkerScore = userProfiles.parker.trustScore;
+
+    // Clear old hashes
+    spot.swapHash = null;
+    spot.channelCreateHash = null;
+    spot.escrowCreateHash = null;
+    spot.lastTrickleHash = null;
+    spot.resolutionHash = null;
 
     res.json({ success: true, spot });
 });
 
-// NEW: Owner Approval Route
 app.post('/api/approve', (req, res) => {
     const { spotId, action } = req.body;
     const spot = spots.find((s) => s.id === spotId);
-
-    if (action === 'accept') {
-        spot.status = 'BOOKED'; // Now the Parker can arrive
-    } else {
-        // Reset spot if declined
+    if (action === 'accept') spot.status = 'BOOKED';
+    else {
         spot.status = 'AVAILABLE';
         spot.duration = 0;
         spot.condition = null;
         spot.fulfillment = null;
         spot.pendingParkerScore = null;
     }
-
     res.json({ success: true, spot });
 });
 
 app.post('/api/start', async (req, res) => {
-    console.log(`\n[API POST] /start -> payload:`, req.body);
-    const { spotId, useStablecoin } = req.body;
+    const { spotId, currency } = req.body;
     const spot = spots.find((s) => s.id === spotId);
-
     try {
         let swapHash = null;
-        if (useStablecoin) {
-            console.log(
-                `[API TRACE] Parker selected RLUSD. Calculating swap requirements...`,
+        if (currency && currency !== 'XRP') {
+            // STRICT MATH: Prevent decimal drops being passed to the swap engine
+            const capacityDrops = Math.floor(
+                spot.price * spot.duration * 1000000,
             );
-            // Calculate total XRP needed (Max Channel Capacity + Escrow Collateral)
-            const capacityDrops = spot.price * spot.duration * 1000000;
-            const collateralDrops = spot.price * 3 * 1000000;
-            const totalDropsNeeded = capacityDrops + collateralDrops;
-            console.log(
-                `[API TRACE] Demanding ${totalDropsNeeded} drops from AMM DEX.`,
+            const collateralDrops = Math.floor(spot.price * 3 * 1000000);
+            swapHash = await xrplService.swapStablecoinForXRP(
+                capacityDrops + collateralDrops,
+                currency,
             );
-
-            // Execute the atomic swap before continuing
-            swapHash = await xrplService.swapStablecoinForXRP(totalDropsNeeded);
+            spot.swapHash = swapHash;
         }
 
-        console.log(`[API TRACE] Triggering Native XRPL Escrow Logic...`);
         const hashes = await xrplService.startParkingOnChain(spot);
-        if (swapHash) hashes.swapHash = swapHash;
-
+        spot.channelCreateHash = hashes.channelHash;
+        spot.escrowCreateHash = hashes.escrowHash;
         spot.status = 'ACTIVE';
-        console.log(
-            `[API SUCCESS] Parking Active. Hashes returned to frontend:`,
-            hashes,
-        );
         res.json({ success: true, hashes });
     } catch (e) {
-        console.error(`[API FATAL] /start crash:`, e.message);
         res.status(500).json({ error: e.message });
     }
 });
 
-// Update the Vote Route to handle FICO logic
 app.post('/api/vote', async (req, res) => {
     const { spotId, voter, vote } = req.body;
     const spot = spots.find((s) => s.id === spotId);
     spot.votes[voter] = vote;
 
-    // Helper to process FICO Score & NFT Logic
     const processReputation = (status) => {
         if (status === 'RESOLVED_SAFE') {
-            // +25 Points for good behavior, max 850
             userProfiles.parker.trustScore = Math.min(
                 850,
                 userProfiles.parker.trustScore + 25,
             );
             userProfiles.parker.safeCheckouts++;
-
             if (
                 userProfiles.parker.trustScore >= 700 &&
                 !userProfiles.parker.hasNFT
@@ -327,7 +290,6 @@ app.post('/api/vote', async (req, res) => {
                 spot.nftMinted = true;
             }
         } else if (status === 'RESOLVED_PENALTY') {
-            // -150 Points for slashing, min 300
             userProfiles.parker.trustScore = Math.max(
                 300,
                 userProfiles.parker.trustScore - 150,
@@ -338,9 +300,14 @@ app.post('/api/vote', async (req, res) => {
         }
     };
 
-    // Early Checkout Bypass
+    // Safe Early Checkout Bypass (Refunds to Parker)
     if (spot.status === 'ACTIVE' && voter === 'parker' && vote === 'safe') {
         spot.status = 'RESOLVED_SAFE';
+        try {
+            spot.resolutionHash = await xrplService.refundCollateral(spot);
+        } catch (e) {
+            console.error(`[SERVER ERROR] Early refund execution failed:`, e);
+        }
         processReputation(spot.status);
         return res.json(spot);
     }
@@ -352,11 +319,24 @@ app.post('/api/vote', async (req, res) => {
     ) {
         const isPenalty = votesArr.filter((v) => v === 'penalty').length >= 2;
         spot.status = isPenalty ? 'RESOLVED_PENALTY' : 'RESOLVED_SAFE';
-        processReputation(spot.status);
-        if (isPenalty)
+
+        if (isPenalty) {
             try {
-                spot.escrowHash = await xrplService.slashCollateral(spot);
-            } catch (e) {}
+                spot.resolutionHash = await xrplService.slashCollateral(spot);
+            } catch (e) {
+                console.error(`[SERVER ERROR] Slash execution failed:`, e);
+            }
+        } else {
+            try {
+                spot.resolutionHash = await xrplService.refundCollateral(spot);
+            } catch (e) {
+                console.error(
+                    `[SERVER ERROR] Vote refund execution failed:`,
+                    e,
+                );
+            }
+        }
+        processReputation(spot.status);
     } else if (
         spot.votes.parker &&
         spot.votes.owner &&
