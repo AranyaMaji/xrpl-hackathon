@@ -1,4 +1,4 @@
-# 🅿️ XRPark
+# 🅿️ XRPark ( 🥈2nd Place )
 
 **A Pure Web3 Peer-to-Peer Parking Economy Powered by the XRP Ledger.**
 
