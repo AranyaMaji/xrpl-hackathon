@@ -49,8 +49,19 @@ When a Parker chooses to pay in **AUDD**:
 
 ## ⚙️ Local Setup & Boot Sequence
 
-**1. Clone and Install**
+**1) Install**
 ```bash
 git clone https://github.com/AranyaMaji/xrpl-hackathon.git
 cd xrpark
 npm install
+```
+
+**2) Run**
+```bash
+cd .\backend\
+node .\server.js
+```
+
+**3) View**
+<br />
+Open [http://localhost:3000/](http://localhost:3000/)
